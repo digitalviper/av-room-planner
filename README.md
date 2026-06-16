@@ -1,8 +1,6 @@
 # AV Room Planner
 
-**3D AV Room Planner with DWG floor plan import** — built for the Moraine Park Technical College AV team.
-
-![AV Room Planner](https://github.com/digitalviper/av-room-planner/raw/main/screenshot.png)
+**3D AV Room Planner with DWG floor plan import** — a clean, modern tool for AV professionals.
 
 ## Features (v1.0)
 
@@ -62,4 +60,4 @@ This site is automatically deployed via GitHub Pages from the `main` branch.
 
 ---
 
-Built with ❤️ by Jordan Wald / digitalviper for MPTC AV & Event Technology.
+Built with ❤️ by digitalviper.

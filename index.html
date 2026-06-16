@@ -10,18 +10,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
         
-        :root {
-            --primary: #3b82f6;
-        }
-        
-        body {
-            font-family: 'Inter', system_ui, sans-serif;
-        }
-        
-        .font-display {
-            font-family: 'Space Grotesk', 'Inter', sans-serif;
-            font-weight: 600;
-        }
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
 
         .three-container {
             border-radius: 16px;
@@ -29,16 +19,9 @@
             box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
         }
 
-        .nav-active {
-            background-color: #1e2937;
-            color: white;
-            border-radius: 8px;
-        }
-
         .dropzone {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
         .dropzone.dragover {
             background-color: #1e2937;
             border-color: #3b82f6;
@@ -46,10 +29,8 @@
         }
 
         .equipment-card {
-            transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1), 
-                       box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
-        
         .equipment-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -84,7 +65,7 @@
                     </div>
                     <div>
                         <span class="font-display text-2xl font-semibold tracking-tighter">AV Room Planner</span>
-                        <span class="ml-2 text-xs px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full align-middle">v1.0</span>
+                        <span class="ml-2 text-xs px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full align-middle">v1.1</span>
                     </div>
                 </div>
                 
@@ -92,12 +73,11 @@
                     <div class="flex items-center bg-slate-900 border border-slate-700 rounded-2xl px-1 py-1 text-sm">
                         <div class="flex items-center gap-x-2 px-3">
                             <div class="w-2 h-2 bg-emerald-400 rounded-full status-dot"></div>
-                            <span class="text-emerald-400 text-xs font-medium">GitHub Pages</span>
+                            <span class="text-emerald-400 text-xs font-medium">GitHub Pages • DXF Native</span>
                         </div>
                     </div>
                     
-                    <a href="https://github.com/digitalviper/av-room-planner" 
-                       target="_blank"
+                    <a href="https://github.com/digitalviper/av-room-planner" target="_blank"
                        class="flex items-center gap-x-2 px-4 py-2 text-sm font-medium hover:bg-slate-800 rounded-2xl transition-colors border border-slate-700">
                         <i class="fa-brands fa-github"></i>
                         <span>digitalviper</span>
@@ -113,7 +93,7 @@
         <div class="flex items-end justify-between mb-8">
             <div>
                 <h1 class="font-display text-5xl font-semibold tracking-tighter">AV Room Planner</h1>
-                <p class="text-slate-400 mt-2 text-lg">Import DWG floor plans • Design AV layouts in 3D</p>
+                <p class="text-slate-400 mt-2 text-lg">Import DWG/DXF floor plans • Design AV layouts in 3D</p>
             </div>
             
             <div class="flex items-center gap-x-3">
@@ -132,7 +112,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- DWG Import Panel -->
+            <!-- Import Panel -->
             <div class="lg:col-span-5 bg-slate-900 border border-slate-700 rounded-3xl p-6">
                 <div class="flex items-center gap-x-3 mb-4">
                     <div class="w-9 h-9 bg-blue-600/10 text-blue-400 rounded-2xl flex items-center justify-center">
@@ -140,11 +120,10 @@
                     </div>
                     <div>
                         <h2 class="font-semibold text-xl tracking-tight">Import Floor Plan</h2>
-                        <p class="text-xs text-slate-400">DWG • DXF supported (best results with Autodesk Viewer)</p>
+                        <p class="text-xs text-slate-400">DXF (native geometry) • DWG (convert to DXF first)</p>
                     </div>
                 </div>
 
-                <!-- Dropzone -->
                 <div id="dropzone"
                      class="dropzone border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-3xl p-8 text-center cursor-pointer bg-slate-950/50"
                      ondrop="handleDrop(event)" 
@@ -156,13 +135,12 @@
                         <i class="fa-solid fa-cloud-upload-alt text-3xl text-slate-400"></i>
                     </div>
                     
-                    <div class="font-medium">Drop your DWG file here</div>
-                    <div class="text-xs text-slate-400 mt-1">or click to browse</div>
+                    <div class="font-medium">Drop your DXF or DWG file here</div>
+                    <div class="text-xs text-slate-400 mt-1">DXF renders directly • DWG needs conversion</div>
                     
                     <input type="file" id="fileInput" accept=".dwg,.dxf" class="hidden" onchange="handleFileSelect(event)">
                 </div>
 
-                <!-- File Info Card -->
                 <div id="fileInfo" class="hidden mt-4 bg-slate-800 border border-slate-600 rounded-2xl p-4">
                     <div class="flex items-start justify-between">
                         <div class="flex items-center gap-x-3">
@@ -172,39 +150,30 @@
                             <div class="min-w-0">
                                 <div id="fileName" class="font-semibold text-sm truncate"></div>
                                 <div id="fileSize" class="text-xs text-slate-400"></div>
+                                <div id="fileType" class="text-[10px] text-emerald-400 font-medium mt-0.5"></div>
                             </div>
                         </div>
-                        <button onclick="clearFile()" 
-                                class="text-slate-400 hover:text-red-400 p-1 transition-colors">
+                        <button onclick="clearFile()" class="text-slate-400 hover:text-red-400 p-1 transition-colors">
                             <i class="fa-solid fa-times"></i>
                         </button>
                     </div>
                     
-                    <div class="mt-4 grid grid-cols-2 gap-2">
-                        <button onclick="viewInAutodeskViewer()" 
-                                class="col-span-2 flex items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 transition-colors text-white text-sm font-semibold py-3 rounded-2xl">
-                            <i class="fa-solid fa-external-link-alt"></i>
-                            <span>Open in Autodesk Viewer</span>
+                    <div class="mt-4">
+                        <button onclick="loadFloorPlanIntoScene()" 
+                                class="w-full flex items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 transition-colors text-white text-sm font-semibold py-3 rounded-2xl">
+                            <i class="fa-solid fa-drafting-compass"></i>
+                            <span>Render Geometry in 3D Scene</span>
                         </button>
                         
-                        <button onclick="loadIntoPlanner()" 
-                                class="flex items-center justify-center gap-x-2 bg-slate-700 hover:bg-slate-600 text-sm font-medium py-2.5 rounded-2xl transition-colors">
-                            <i class="fa-solid fa-cube"></i>
-                            <span>Load into 3D Planner</span>
-                        </button>
-                        
-                        <button onclick="showDWGInfo()" 
-                                class="flex items-center justify-center gap-x-2 bg-slate-700 hover:bg-slate-600 text-sm font-medium py-2.5 rounded-2xl transition-colors">
-                            <i class="fa-solid fa-info-circle"></i>
-                            <span>More Info</span>
-                        </button>
+                        <div id="dwgNote" class="hidden mt-3 text-xs bg-amber-900/20 border border-amber-700/50 text-amber-300 px-3 py-2 rounded-2xl">
+                            <strong>DWG detected.</strong> Convert to DXF first using free tools like 
+                            <a href="https://www.opendesign.com/guestfiles/oda_file_converter" target="_blank" class="underline">ODA File Converter</a> for best results.
+                        </div>
                     </div>
                 </div>
 
                 <div class="mt-4 text-[10px] text-slate-500 px-1 leading-tight">
-                    <strong>Current limitation:</strong> Full native DWG parsing in browser is emerging. 
-                    For production use we recommend the free <strong>Autodesk Viewer</strong> or integrating 
-                    <span class="font-mono text-[9px]">libredwg-web</span> / APS.
+                    DXF files are parsed client-side and rendered as real 3D geometry (lines, polylines, circles, arcs).
                 </div>
             </div>
 
@@ -229,7 +198,7 @@
                     <div class="flex items-center gap-x-4 text-slate-400">
                         <div class="flex items-center gap-x-1.5">
                             <i class="fa-solid fa-cube text-emerald-400"></i>
-                            <span id="objectCount">12 objects</span>
+                            <span id="objectCount">0 objects</span>
                         </div>
                         <div>Room: <span class="font-mono text-emerald-400">24' × 18'</span></div>
                     </div>
@@ -290,35 +259,33 @@
                 <div class="mt-5 pt-4 border-t border-slate-700">
                     <div class="text-[10px] text-slate-400 px-1 mb-2">Quick Actions</div>
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <button onclick="clearEquipment()" 
-                                class="py-2 bg-slate-800 hover:bg-red-900/20 hover:text-red-400 border border-slate-600 rounded-2xl transition-colors text-xs font-medium">
-                            Clear All
+                        <button onclick="clearFloorPlanGeometry()" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl transition-colors text-xs font-medium">
+                            Clear Floor Plan
                         </button>
-                        <button onclick="centerCamera()" 
-                                class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl transition-colors text-xs font-medium">
+                        <button onclick="centerCamera()" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl transition-colors text-xs font-medium">
                             Center View
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Layers & Info -->
+            <!-- Layers -->
             <div class="lg:col-span-9 bg-slate-900 border border-slate-700 rounded-3xl p-5">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div>
                         <div class="section-header text-slate-400 mb-2.5 px-1">Layers</div>
                         <div class="space-y-1 text-sm">
                             <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
-                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>Floor Plan</span></div>
-                                <input type="checkbox" checked class="accent-blue-500">
+                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>Base Room</span></div>
+                                <input type="checkbox" checked class="accent-blue-500" onchange="toggleLayer('room', this.checked)">
+                            </div>
+                            <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
+                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>Floor Plan (DXF)</span></div>
+                                <input type="checkbox" checked class="accent-blue-500" onchange="toggleLayer('dxf', this.checked)">
                             </div>
                             <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
                                 <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>AV Equipment</span></div>
-                                <input type="checkbox" checked class="accent-blue-500">
-                            </div>
-                            <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
-                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>Dimensions</span></div>
-                                <input type="checkbox" class="accent-blue-500">
+                                <input type="checkbox" checked class="accent-blue-500" onchange="toggleLayer('equipment', this.checked)">
                             </div>
                         </div>
                     </div>
@@ -343,280 +310,179 @@
             
         </div>
         
-        <!-- Footer note -->
         <div class="mt-8 text-center">
             <p class="text-xs text-slate-500">
-                Built for AV &amp; event technology teams • 
-                Full native DWG parsing coming via <span class="font-mono">libredwg-web</span> or Autodesk APS
+                DXF geometry parsed &amp; rendered client-side in Three.js. Convert DWG → DXF for best results (free tools available).
             </p>
         </div>
     </div>
 
     <script>
-        // Tailwind script
         function initializeTailwind() {
             document.documentElement.style.setProperty('--accent', '#3b82f6');
         }
-        
-        // Three.js Scene
+
         let scene, camera, renderer;
         let roomObjects = [];
+        let dxfObjects = [];
+        let equipmentObjects = [];
         let isDragging = false;
-        let previousMouseX = 0;
-        let previousMouseY = 0;
-        let rotationY = 0.8;
-        let rotationX = 0.6;
-        let zoom = 1;
+        let previousMouseX = 0, previousMouseY = 0;
+        let rotationY = 0.8, rotationX = 0.6, zoom = 1;
+        let currentFile = null;
+        let currentFileType = '';
 
         function initThreeJS() {
             const container = document.getElementById('threeContainer');
             const canvas = document.getElementById('threeCanvas');
             
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ 
-                canvas: canvas, 
-                antialias: true, 
-                alpha: true,
-                preserveDrawingBuffer: true 
-            });
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.shadowMap.enabled = true;
             
-            // Scene
             scene = new THREE.Scene();
             scene.fog = new THREE.Fog(0x0f172a, 40, 120);
             
-            // Camera
             camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 200);
             camera.position.set(18, 22, 26);
             
-            // Lighting
-            const ambient = new THREE.AmbientLight(0x64748b, 0.6);
-            scene.add(ambient);
-            
-            const hemi = new THREE.HemisphereLight(0x64748b, 0x1e2937, 0.8);
-            scene.add(hemi);
+            scene.add(new THREE.AmbientLight(0x64748b, 0.6));
+            scene.add(new THREE.HemisphereLight(0x64748b, 0x1e2937, 0.8));
             
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
             dirLight.position.set(25, 40, 15);
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 1024;
-            dirLight.shadow.mapSize.height = 1024;
             scene.add(dirLight);
             
-            // Room
             createRoom();
             
-            // Initial equipment
             addEquipmentToScene('projector', 4, 3.2, -6);
             addEquipmentToScene('display', -7, 2.5, 0);
             addEquipmentToScene('camera', 0, 4.5, -8.5);
             addEquipmentToScene('speaker', 8, 3.8, 6);
             addEquipmentToScene('speaker', -8, 3.8, 6);
             
-            // Floor grid helper
             const grid = new THREE.GridHelper(30, 30, 0x334155, 0x1e2937);
             grid.position.y = 0.01;
             scene.add(grid);
+            roomObjects.push(grid);
             
-            // Event listeners for orbit
             const threeCanvas = document.getElementById('threeCanvas');
-            
             threeCanvas.addEventListener('mousedown', onMouseDown);
             threeCanvas.addEventListener('mouseup', onMouseUp);
             threeCanvas.addEventListener('mousemove', onMouseMove);
             threeCanvas.addEventListener('wheel', onWheel);
             threeCanvas.addEventListener('mouseleave', onMouseUp);
             
-            // Touch support
             threeCanvas.addEventListener('touchstart', onTouchStart);
             threeCanvas.addEventListener('touchend', onTouchEnd);
             threeCanvas.addEventListener('touchmove', onTouchMove);
             
-            // Handle resize
             window.addEventListener('resize', () => {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(container.clientWidth, container.clientHeight);
             });
             
-            // Animation loop
             animate();
-            
             updateObjectCount();
         }
         
         function createRoom() {
-            // Floor
-            const floorGeo = new THREE.PlaneGeometry(24, 18);
-            const floorMat = new THREE.MeshLambertMaterial({ 
-                color: 0x334155, 
-                flatShading: true 
-            });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 18), new THREE.MeshLambertMaterial({ color: 0x334155 }));
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
+            floor.userData.layer = 'room';
             scene.add(floor);
             roomObjects.push(floor);
             
-            // Walls
             const wallMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
             const wallHeight = 10;
             
-            // Back wall
-            const backWall = new THREE.Mesh(
-                new THREE.PlaneGeometry(24, wallHeight), 
-                wallMat
-            );
-            backWall.position.set(0, wallHeight/2, -9);
-            scene.add(backWall);
-            roomObjects.push(backWall);
+            const wallConfigs = [
+                { w: 24, h: wallHeight, x: 0, y: wallHeight/2, z: -9, ry: 0 },
+                { w: 24, h: wallHeight, x: 0, y: wallHeight/2, z: 9, ry: Math.PI },
+                { w: 18, h: wallHeight, x: -12, y: wallHeight/2, z: 0, ry: Math.PI/2 },
+                { w: 18, h: wallHeight, x: 12, y: wallHeight/2, z: 0, ry: -Math.PI/2 }
+            ];
             
-            // Front wall
-            const frontWall = new THREE.Mesh(
-                new THREE.PlaneGeometry(24, wallHeight), 
-                wallMat
-            );
-            frontWall.position.set(0, wallHeight/2, 9);
-            frontWall.rotation.y = Math.PI;
-            scene.add(frontWall);
-            roomObjects.push(frontWall);
+            wallConfigs.forEach(cfg => {
+                const wall = new THREE.Mesh(new THREE.PlaneGeometry(cfg.w, cfg.h), wallMat);
+                wall.position.set(cfg.x, cfg.y, cfg.z);
+                wall.rotation.y = cfg.ry;
+                wall.userData.layer = 'room';
+                scene.add(wall);
+                roomObjects.push(wall);
+            });
             
-            // Left wall
-            const leftWall = new THREE.Mesh(
-                new THREE.PlaneGeometry(18, wallHeight), 
-                wallMat
-            );
-            leftWall.position.set(-12, wallHeight/2, 0);
-            leftWall.rotation.y = Math.PI / 2;
-            scene.add(leftWall);
-            roomObjects.push(leftWall);
-            
-            // Right wall
-            const rightWall = new THREE.Mesh(
-                new THREE.PlaneGeometry(18, wallHeight), 
-                wallMat
-            );
-            rightWall.position.set(12, wallHeight/2, 0);
-            rightWall.rotation.y = -Math.PI / 2;
-            scene.add(rightWall);
-            roomObjects.push(rightWall);
-            
-            // Ceiling
-            const ceiling = new THREE.Mesh(
-                new THREE.PlaneGeometry(24, 18), 
-                new THREE.MeshLambertMaterial({ color: 0x1e2937 })
-            );
+            const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(24, 18), new THREE.MeshLambertMaterial({ color: 0x1e2937 }));
             ceiling.position.y = wallHeight;
             ceiling.rotation.x = Math.PI / 2;
+            ceiling.userData.layer = 'room';
             scene.add(ceiling);
             roomObjects.push(ceiling);
         }
         
         function addEquipmentToScene(type, x, y, z) {
             let mesh;
-            let color;
-            let label;
-            
             switch(type) {
-                case 'projector':
-                    mesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(1.2, 0.6, 2.2),
-                        new THREE.MeshLambertMaterial({ color: 0xf59e0b })
-                    );
-                    label = 'Projector';
-                    break;
-                    
-                case 'display':
-                    mesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(8, 4.5, 0.4),
-                        new THREE.MeshLambertMaterial({ color: 0x0ea5e9 })
-                    );
-                    label = 'Display';
-                    break;
-                    
-                case 'camera':
-                    mesh = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.6, 0.6, 1.8, 16),
-                        new THREE.MeshLambertMaterial({ color: 0x8b5cf6 })
-                    );
-                    label = 'PTZ Cam';
-                    break;
-                    
-                case 'speaker':
-                    mesh = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.9, 0.9, 0.7, 24),
-                        new THREE.MeshLambertMaterial({ color: 0xf43f5e })
-                    );
-                    label = 'Speaker';
-                    break;
-                    
-                default:
-                    mesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(1, 1, 1),
-                        new THREE.MeshLambertMaterial({ color: 0x64748b })
-                    );
-                    label = 'Equipment';
+                case 'projector': mesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 2.2), new THREE.MeshLambertMaterial({ color: 0xf59e0b })); break;
+                case 'display': mesh = new THREE.Mesh(new THREE.BoxGeometry(8, 4.5, 0.4), new THREE.MeshLambertMaterial({ color: 0x0ea5e9 })); break;
+                case 'camera': mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.8, 16), new THREE.MeshLambertMaterial({ color: 0x8b5cf6 })); break;
+                case 'speaker': mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.7, 24), new THREE.MeshLambertMaterial({ color: 0xf43f5e })); break;
+                default: mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x64748b }));
             }
-            
             mesh.position.set(x, y, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            mesh.userData = { type, label, id: Date.now() };
-            
+            mesh.userData = { type, layer: 'equipment', id: Date.now() };
             scene.add(mesh);
-            roomObjects.push(mesh);
-            
+            equipmentObjects.push(mesh);
             updateObjectCount();
         }
         
         function addEquipment(type) {
-            // Add at random visible position
             const x = (Math.random() - 0.5) * 16;
             const z = (Math.random() - 0.5) * 12;
             const y = (type === 'display') ? 3 : 3.5;
-            
             addEquipmentToScene(type, x, y, z);
         }
         
         function addRandomEquipment() {
             const types = ['projector', 'display', 'camera', 'speaker'];
-            const randomType = types[Math.floor(Math.random() * types.length)];
-            addEquipment(randomType);
+            addEquipment(types[Math.floor(Math.random() * types.length)]);
         }
         
         function clearEquipment() {
-            // Remove only equipment, keep room structure
-            const toRemove = [];
-            scene.children.forEach(child => {
-                if (child.userData && child.userData.type) {
-                    toRemove.push(child);
-                }
-            });
-            
-            toRemove.forEach(obj => {
-                scene.remove(obj);
-                const index = roomObjects.indexOf(obj);
-                if (index > -1) roomObjects.splice(index, 1);
-            });
-            
+            equipmentObjects.forEach(obj => scene.remove(obj));
+            equipmentObjects = [];
             updateObjectCount();
+        }
+        
+        function clearFloorPlanGeometry() {
+            dxfObjects.forEach(obj => scene.remove(obj));
+            dxfObjects = [];
+            updateObjectCount();
+        }
+        
+        function toggleLayer(layer, visible) {
+            let objects = [];
+            if (layer === 'room') objects = roomObjects;
+            else if (layer === 'dxf') objects = dxfObjects;
+            else if (layer === 'equipment') objects = equipmentObjects;
+            
+            objects.forEach(obj => { if (obj) obj.visible = visible; });
         }
         
         function updateObjectCount() {
             const countEl = document.getElementById('objectCount');
-            if (countEl) {
-                const equipmentCount = roomObjects.filter(obj => obj.userData && obj.userData.type).length;
-                countEl.textContent = `${equipmentCount} equipment items`;
-            }
+            if (countEl) countEl.textContent = `${equipmentObjects.length + dxfObjects.length} objects`;
         }
         
         function centerCamera() {
             camera.position.set(18, 22, 26);
-            rotationY = 0.8;
-            rotationX = 0.6;
-            zoom = 1;
+            rotationY = 0.8; rotationX = 0.6; zoom = 1;
             updateCameraPosition();
         }
         
@@ -628,285 +494,219 @@
             camera.lookAt(0, 6, 0);
         }
         
-        function onMouseDown(e) {
-            isDragging = true;
-            previousMouseX = e.clientX;
-            previousMouseY = e.clientY;
-        }
-        
-        function onMouseUp() {
-            isDragging = false;
-        }
-        
+        function onMouseDown(e) { isDragging = true; previousMouseX = e.clientX; previousMouseY = e.clientY; }
+        function onMouseUp() { isDragging = false; }
         function onMouseMove(e) {
             if (!isDragging) return;
-            
-            const deltaX = e.clientX - previousMouseX;
-            const deltaY = e.clientY - previousMouseY;
-            
-            rotationY += deltaX * 0.005;
-            rotationX += deltaY * 0.005;
-            
-            // Clamp vertical rotation
+            rotationY += (e.clientX - previousMouseX) * 0.005;
+            rotationX += (e.clientY - previousMouseY) * 0.005;
             rotationX = Math.max(-1.2, Math.min(1.5, rotationX));
-            
             updateCameraPosition();
-            
-            previousMouseX = e.clientX;
-            previousMouseY = e.clientY;
+            previousMouseX = e.clientX; previousMouseY = e.clientY;
         }
+        function onWheel(e) { e.preventDefault(); zoom = Math.max(0.4, Math.min(2.5, zoom + e.deltaY * -0.0015)); updateCameraPosition(); }
         
-        function onWheel(e) {
-            e.preventDefault();
-            zoom += e.deltaY * -0.0015;
-            zoom = Math.max(0.4, Math.min(2.5, zoom));
-            updateCameraPosition();
-        }
-        
-        // Touch handlers (simplified)
         let touchStartX = 0, touchStartY = 0;
-        
-        function onTouchStart(e) {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            }
-        }
-        
-        function onTouchEnd() {
-            isDragging = false;
-        }
-        
+        function onTouchStart(e) { if (e.touches.length === 1) { isDragging = true; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; } }
+        function onTouchEnd() { isDragging = false; }
         function onTouchMove(e) {
             if (!isDragging || e.touches.length !== 1) return;
-            
-            const deltaX = e.touches[0].clientX - touchStartX;
-            const deltaY = e.touches[0].clientY - touchStartY;
-            
-            rotationY += deltaX * 0.006;
-            rotationX += deltaY * 0.006;
+            rotationY += (e.touches[0].clientX - touchStartX) * 0.006;
+            rotationX += (e.touches[0].clientY - touchStartY) * 0.006;
             rotationX = Math.max(-1.2, Math.min(1.5, rotationX));
-            
             updateCameraPosition();
-            
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
         }
         
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
         
         function resetScene() {
-            // Clear equipment
             clearEquipment();
-            
-            // Re-add defaults
+            clearFloorPlanGeometry();
             addEquipmentToScene('projector', 4, 3.2, -6);
             addEquipmentToScene('display', -7, 2.5, 0);
             addEquipmentToScene('camera', 0, 4.5, -8.5);
             addEquipmentToScene('speaker', 8, 3.8, 6);
             addEquipmentToScene('speaker', -8, 3.8, 6);
-            
             centerCamera();
         }
         
         function exportScene() {
             const link = document.createElement('a');
             link.download = 'av-room-layout.png';
-            renderer.domElement.toBlob(function(blob) {
-                link.href = URL.createObjectURL(blob);
-                link.click();
+            renderer.domElement.toBlob(blob => { link.href = URL.createObjectURL(blob); link.click(); });
+        }
+
+        // DXF PARSER
+        function parseDXF(text) {
+            const lines = text.split(/\r?\n/);
+            const entities = [];
+            let current = null;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const code = lines[i].trim();
+                if (code === '0' && i + 1 < lines.length) {
+                    const type = lines[i+1].trim().toUpperCase();
+                    if (['LINE','POLYLINE','LWPOLYLINE','CIRCLE','ARC'].includes(type)) {
+                        if (current) entities.push(current);
+                        current = { type, points: [] };
+                    }
+                }
+                if (current) {
+                    const val = lines[i+1] ? lines[i+1].trim() : '';
+                    const c = parseInt(code);
+                    if (c === 10 || c === 11) current.points.push({x: parseFloat(val) || 0, y: 0, z: 0});
+                    if (c === 20 || c === 21) { if (current.points.length) current.points[current.points.length-1].y = parseFloat(val) || 0; }
+                    if (c === 30 || c === 31) { if (current.points.length) current.points[current.points.length-1].z = parseFloat(val) || 0; }
+                    if (c === 40 && (current.type === 'CIRCLE' || current.type === 'ARC')) current.radius = parseFloat(val);
+                    if (c === 50 && current.type === 'ARC') current.startAngle = (parseFloat(val) || 0) * Math.PI / 180;
+                    if (c === 51 && current.type === 'ARC') current.endAngle = (parseFloat(val) || 0) * Math.PI / 180;
+                }
+            }
+            if (current) entities.push(current);
+            return entities;
+        }
+        
+        function renderDXFToScene(entities) {
+            clearFloorPlanGeometry();
+            const mat = new THREE.LineBasicMaterial({ color: 0x22c55e, linewidth: 1.5 });
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            
+            entities.forEach(ent => {
+                let geo = null;
+                
+                if (ent.type === 'LINE' && ent.points.length >= 2) {
+                    geo = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(ent.points[0].x, ent.points[0].y, ent.points[0].z || 0),
+                        new THREE.Vector3(ent.points[1].x, ent.points[1].y, ent.points[1].z || 0)
+                    ]);
+                } else if ((ent.type === 'POLYLINE' || ent.type === 'LWPOLYLINE') && ent.points.length >= 2) {
+                    geo = new THREE.BufferGeometry().setFromPoints(ent.points.map(p => new THREE.Vector3(p.x, p.y, p.z || 0)));
+                } else if (ent.type === 'CIRCLE' && ent.radius) {
+                    const curve = new THREE.EllipseCurve(0, 0, ent.radius, ent.radius, 0, Math.PI*2);
+                    geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(64).map(p => new THREE.Vector3(p.x, p.y, 0)));
+                } else if (ent.type === 'ARC' && ent.radius && ent.startAngle !== undefined) {
+                    const curve = new THREE.EllipseCurve(0, 0, ent.radius, ent.radius, ent.startAngle || 0, ent.endAngle || Math.PI*2);
+                    geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0)));
+                }
+                
+                if (geo) {
+                    const line = new THREE.Line(geo, mat);
+                    line.userData.layer = 'dxf';
+                    
+                    if ((ent.type === 'CIRCLE' || ent.type === 'ARC') && ent.points && ent.points[0]) {
+                        line.position.set(ent.points[0].x || 0, ent.points[0].y || 0, 0);
+                    }
+                    
+                    scene.add(line);
+                    dxfObjects.push(line);
+                    
+                    if (ent.points) ent.points.forEach(p => {
+                        minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+                        minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+                    });
+                }
             });
+            
+            // Auto center & scale
+            if (dxfObjects.length > 0 && minX < Infinity) {
+                const cx = (minX + maxX) / 2;
+                const cy = (minY + maxY) / 2;
+                const scale = Math.min(18 / Math.max(maxX-minX || 1, 1), 14 / Math.max(maxY-minY || 1, 1));
+                
+                dxfObjects.forEach(obj => {
+                    obj.position.x -= cx;
+                    obj.position.y -= cy;
+                    obj.scale.set(scale, scale, 1);
+                });
+            }
+            updateObjectCount();
         }
         
-        // DWG Handling
-        let currentFile = null;
-        
-        function handleDragOver(e) {
-            e.preventDefault();
-            document.getElementById('dropzone').classList.add('dragover');
-        }
-        
-        function handleDragLeave(e) {
-            e.preventDefault();
-            document.getElementById('dropzone').classList.remove('dragover');
-        }
+        function handleDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
+        function handleDragLeave(e) { e.preventDefault(); document.getElementById('dropzone').classList.remove('dragover'); }
         
         function handleDrop(e) {
             e.preventDefault();
             document.getElementById('dropzone').classList.remove('dragover');
-            
-            const file = e.dataTransfer.files[0];
-            if (file) processFile(file);
+            if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
         }
         
         function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) processFile(file);
+            if (e.target.files[0]) processFile(e.target.files[0]);
         }
         
         function processFile(file) {
-            if (!file.name.toLowerCase().endsWith('.dwg') && !file.name.toLowerCase().endsWith('.dxf')) {
-                alert('Please upload a .dwg or .dxf file.');
-                return;
-            }
-            
             currentFile = file;
+            currentFileType = file.name.toLowerCase().endsWith('.dxf') ? 'dxf' : 'dwg';
             
-            // Show file info
-            const fileInfo = document.getElementById('fileInfo');
-            const fileName = document.getElementById('fileName');
-            const fileSize = document.getElementById('fileSize');
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            document.getElementById('fileType').textContent = currentFileType.toUpperCase();
             
-            fileName.textContent = file.name;
-            fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            const dwgNote = document.getElementById('dwgNote');
+            if (currentFileType === 'dwg') dwgNote.classList.remove('hidden'); else dwgNote.classList.add('hidden');
             
-            fileInfo.classList.remove('hidden');
+            document.getElementById('fileInfo').classList.remove('hidden');
             document.getElementById('dropzone').classList.add('hidden');
         }
         
         function clearFile() {
             currentFile = null;
+            currentFileType = '';
             document.getElementById('fileInfo').classList.add('hidden');
             document.getElementById('dropzone').classList.remove('hidden');
             document.getElementById('fileInput').value = '';
+            document.getElementById('dwgNote').classList.add('hidden');
         }
         
-        function viewInAutodeskViewer() {
+        function loadFloorPlanIntoScene() {
             if (!currentFile) return;
             
-            // Open Autodesk Viewer in new tab
-            window.open('https://viewer.autodesk.com/', '_blank');
-            
-            // Show helpful toast
-            showToast('Autodesk Viewer opened in a new tab. Upload your DWG file there for the best experience.');
-        }
-        
-        function loadIntoPlanner() {
-            if (!currentFile) return;
-            
-            // For now, simulate loading the floor plan into the 3D scene
-            const toast = showToast('DWG loaded into planner (simulated). In a future update this will parse the actual geometry using libredwg-web or APS.', 4500);
-            
-            // Add a visual indicator that a "floor plan" was imported
-            setTimeout(() => {
-                // Highlight the floor briefly
-                const floor = roomObjects.find(obj => obj.geometry && obj.geometry.type === 'PlaneGeometry');
-                if (floor) {
-                    const originalColor = floor.material.color.getHex();
-                    floor.material.color.setHex(0x22c55e);
-                    
-                    setTimeout(() => {
-                        if (floor.material) floor.material.color.setHex(originalColor);
-                    }, 1200);
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                if (currentFileType === 'dxf') {
+                    try {
+                        const entities = parseDXF(ev.target.result);
+                        if (entities.length > 0) {
+                            renderDXFToScene(entities);
+                            showToast(`Rendered ${entities.length} DXF entities as 3D geometry.`);
+                        } else {
+                            showToast('No geometry found in this DXF file.');
+                        }
+                    } catch(e) {
+                        console.error(e);
+                        showToast('Failed to parse DXF. Try exporting a simpler version.');
+                    }
+                } else {
+                    showToast('DWG files are not parsed directly. Convert to DXF using free tools and re-upload.');
                 }
-            }, 800);
+            };
+            
+            if (currentFileType === 'dxf') reader.readAsText(currentFile);
+            else showToast('Please convert DWG to DXF first for geometry import.');
         }
         
-        function showDWGInfo() {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6';
-            modal.innerHTML = `
-                <div class="bg-slate-900 border border-slate-600 rounded-3xl max-w-md w-full p-7">
-                    <div class="flex justify-between items-start mb-5">
-                        <div>
-                            <h3 class="font-semibold text-xl">DWG Support Status</h3>
-                            <p class="text-xs text-emerald-400 mt-0.5">v1.0 • January 2026</p>
-                        </div>
-                        <button onclick="this.closest('.fixed').remove()" class="text-2xl leading-none text-slate-400 hover:text-white">&times;</button>
-                    </div>
-                    
-                    <div class="space-y-4 text-sm text-slate-300">
-                        <div>
-                            <div class="font-medium mb-1">Current capabilities</div>
-                            <ul class="list-disc pl-5 space-y-1 text-xs">
-                                <li>Upload and store .dwg / .dxf files locally</li>
-                                <li>One-click open in free Autodesk Viewer</li>
-                                <li>Basic integration with 3D planner</li>
-                            </ul>
-                        </div>
-                        
-                        <div>
-                            <div class="font-medium mb-1">Coming soon</div>
-                            <ul class="list-disc pl-5 space-y-1 text-xs">
-                                <li>Native browser parsing with <span class="font-mono">libredwg-web</span></li>
-                                <li>Full geometry import into Three.js scene</li>
-                                <li>Layer visibility controls from DWG</li>
-                                <li>Autodesk Platform Services (APS) deep integration</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 pt-5 border-t border-slate-700 flex gap-3">
-                        <button onclick="window.open('https://github.com/mlightcad/libredwg-web', '_blank'); this.closest('.fixed').remove()" 
-                                class="flex-1 py-2.5 text-sm bg-slate-700 hover:bg-slate-600 rounded-2xl font-medium transition-colors">
-                            View libredwg-web
-                        </button>
-                        <button onclick="this.closest('.fixed').remove()" 
-                                class="flex-1 py-2.5 text-sm bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold transition-colors">
-                            Got it
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-        
-        function showToast(message, duration = 3200) {
-            const toast = document.createElement('div');
-            toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-sm px-5 py-3 rounded-3xl shadow-xl flex items-center gap-x-3 z-[999]`;
-            toast.innerHTML = `
-                <div class="flex items-center gap-x-3">
-                    <i class="fa-solid fa-info-circle text-blue-400"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.transition = 'all 0.2s ease';
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 200);
-            }, duration);
-            
-            return toast;
+        function showToast(msg, ms = 3200) {
+            const t = document.createElement('div');
+            t.className = `fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-sm px-5 py-3 rounded-3xl flex items-center gap-x-3 z-[999]`;
+            t.innerHTML = `<i class="fa-solid fa-info-circle text-blue-400"></i><span>${msg}</span>`;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.transition='all .2s'; t.style.opacity='0'; setTimeout(()=>t.remove(),200); }, ms);
         }
         
         function initializeEverything() {
             initializeTailwind();
             initThreeJS();
             
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                if (e.key === '?' && document.activeElement.tagName === 'BODY') {
-                    e.preventDefault();
-                    showDWGInfo();
-                }
-                if (e.key.toLowerCase() === 'r' && e.metaKey) {
-                    e.preventDefault();
-                    resetScene();
-                }
+            document.addEventListener('keydown', e => {
+                if (e.key === '?' ) { e.preventDefault(); showToast('Upload DXF files for native 3D geometry rendering.'); }
+                if (e.key.toLowerCase() === 'r' && e.metaKey) { e.preventDefault(); resetScene(); }
             });
             
-            // Welcome toast on first load (subtle)
-            setTimeout(() => {
-                // Only show if no file loaded yet
-                if (!currentFile) {
-                    // showToast('Tip: Drag a .dwg file into the import box to get started', 2800);
-                }
-            }, 1800);
-            
-            // Make sure object count is correct
-            setTimeout(updateObjectCount, 500);
-            
-            console.log('%c[AV Room Planner] Initialized successfully', 'color:#64748b');
+            console.log('%c[AV Room Planner] DXF geometry parser active', 'color:#64748b');
         }
         
-        // Boot the application
         window.onload = initializeEverything;
     </script>
 </body>

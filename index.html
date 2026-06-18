@@ -2,712 +2,1234 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AV Room Planner • digitalviper</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <title>Mic Angle Calculator - 3D Room Visualizer v2.4</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
-        body { font-family: 'Inter', system_ui, sans-serif; }
-        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
-
-        .three-container {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+        canvas { display: block; }
+        #angles {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.65);
+            padding: 12px 14px;
+            width: 230px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-
-        .dropzone {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        #angle-info { margin-bottom: 8px; }
+        #legend {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.2);
         }
-        .dropzone.dragover {
-            background-color: #1e2937;
-            border-color: #3b82f6;
-            transform: scale(1.01);
+        #legend div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 12px;
         }
-
-        .equipment-card {
-            transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        .color-swatch {
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            border-radius: 2px;
         }
-        .equipment-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        #table-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 12px;
+            color: #fff;
+            font-size: 12px;
+            display: none;
+            user-select: none;
+            cursor: move;
+            width: 210px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
-
-        .section-header {
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .three-canvas {
-            width: 100% !important;
-            height: 100% !important;
+        #table-panel label {
             display: block;
+            margin: 6px 0 2px;
+            font-size: 11px;
+            color: #ccc;
         }
-
-        .status-dot {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        #table-panel input {
+            width: 100%;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        #table-panel button {
+            background: #444;
+            border: 1px solid #666;
+            color: #fff;
+            padding: 6px 12px;
+            margin-top: 8px;
+            margin-right: 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        #table-panel button:hover { background: #555; }
+        #close-panel {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 18px;
+            height: 18px;
+            background: #c33;
+            border: 1px solid #e55;
+            color: #fff;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        #close-panel:hover { background: #e55; }
+        .dg.main { width: 310px !important; }
+        .dg .cr.number .property-name { width: 110px; }
+        .dg .cr.number input[type="number"] { width: 55px; }
+        #room-name {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200">
-    <!-- Top Navigation -->
-    <nav class="border-b border-slate-800 bg-slate-900">
-        <div class="max-w-screen-2xl mx-auto">
-            <div class="px-8 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-x-3">
-                    <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-video text-white text-2xl"></i>
-                    </div>
-                    <div>
-                        <span class="font-display text-2xl font-semibold tracking-tighter">AV Room Planner</span>
-                        <span class="ml-2 text-xs px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full align-middle">v1.1</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-x-2">
-                    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-2xl px-1 py-1 text-sm">
-                        <div class="flex items-center gap-x-2 px-3">
-                            <div class="w-2 h-2 bg-emerald-400 rounded-full status-dot"></div>
-                            <span class="text-emerald-400 text-xs font-medium">GitHub Pages • DXF Native</span>
-                        </div>
-                    </div>
-                    
-                    <a href="https://github.com/digitalviper/av-room-planner" target="_blank"
-                       class="flex items-center gap-x-2 px-4 py-2 text-sm font-medium hover:bg-slate-800 rounded-2xl transition-colors border border-slate-700">
-                        <i class="fa-brands fa-github"></i>
-                        <span>digitalviper</span>
-                    </a>
-                </div>
-            </div>
+<body>
+    <div id="angles">
+        <div id="angle-info">
+            Horizontal Angle: <span id="horiz">0.00°</span><br>
+            Vertical Angle: <span id="vert">0.00°</span><br>
+            Distance: <span id="dist">0 ft 0 in</span><br>
+            Floor Distance: <span id="floor-dist">0 ft 0 in</span>
         </div>
-    </nav>
-
-    <div class="max-w-screen-2xl mx-auto px-8 pt-8 pb-12">
-        
-        <!-- Header -->
-        <div class="flex items-end justify-between mb-8">
-            <div>
-                <h1 class="font-display text-5xl font-semibold tracking-tighter">AV Room Planner</h1>
-                <p class="text-slate-400 mt-2 text-lg">Import DWG/DXF floor plans • Design AV layouts in 3D</p>
-            </div>
-            
-            <div class="flex items-center gap-x-3">
-                <button onclick="resetScene()" 
-                        class="px-4 py-2.5 text-sm font-medium flex items-center gap-x-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl transition-all active:scale-[0.985]">
-                    <i class="fa-solid fa-undo mr-1.5"></i>
-                    <span>Reset Scene</span>
-                </button>
-                <button onclick="exportScene()" 
-                        class="px-5 py-2.5 text-sm font-semibold flex items-center gap-x-2 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl transition-all active:scale-[0.985]">
-                    <i class="fa-solid fa-download mr-2"></i>
-                    <span>Export Layout</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Import Panel -->
-            <div class="lg:col-span-5 bg-slate-900 border border-slate-700 rounded-3xl p-6">
-                <div class="flex items-center gap-x-3 mb-4">
-                    <div class="w-9 h-9 bg-blue-600/10 text-blue-400 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-file-import text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-semibold text-xl tracking-tight">Import Floor Plan</h2>
-                        <p class="text-xs text-slate-400">DXF (native geometry) • DWG (convert to DXF first)</p>
-                    </div>
-                </div>
-
-                <div id="dropzone"
-                     class="dropzone border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-3xl p-8 text-center cursor-pointer bg-slate-950/50"
-                     ondrop="handleDrop(event)" 
-                     ondragover="handleDragOver(event)" 
-                     ondragleave="handleDragLeave(event)"
-                     onclick="document.getElementById('fileInput').click()">
-                    
-                    <div class="mx-auto w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
-                        <i class="fa-solid fa-cloud-upload-alt text-3xl text-slate-400"></i>
-                    </div>
-                    
-                    <div class="font-medium">Drop your DXF or DWG file here</div>
-                    <div class="text-xs text-slate-400 mt-1">DXF renders directly • DWG needs conversion</div>
-                    
-                    <input type="file" id="fileInput" accept=".dwg,.dxf" class="hidden" onchange="handleFileSelect(event)">
-                </div>
-
-                <div id="fileInfo" class="hidden mt-4 bg-slate-800 border border-slate-600 rounded-2xl p-4">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center gap-x-3">
-                            <div class="w-10 h-10 bg-emerald-900/30 text-emerald-400 rounded-2xl flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-file-code text-xl"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <div id="fileName" class="font-semibold text-sm truncate"></div>
-                                <div id="fileSize" class="text-xs text-slate-400"></div>
-                                <div id="fileType" class="text-[10px] text-emerald-400 font-medium mt-0.5"></div>
-                            </div>
-                        </div>
-                        <button onclick="clearFile()" class="text-slate-400 hover:text-red-400 p-1 transition-colors">
-                            <i class="fa-solid fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <button onclick="loadFloorPlanIntoScene()" 
-                                class="w-full flex items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 transition-colors text-white text-sm font-semibold py-3 rounded-2xl">
-                            <i class="fa-solid fa-drafting-compass"></i>
-                            <span>Render Geometry in 3D Scene</span>
-                        </button>
-                        
-                        <div id="dwgNote" class="hidden mt-3 text-xs bg-amber-900/20 border border-amber-700/50 text-amber-300 px-3 py-2 rounded-2xl">
-                            <strong>DWG detected.</strong> Convert to DXF first using free tools like 
-                            <a href="https://www.opendesign.com/guestfiles/oda_file_converter" target="_blank" class="underline">ODA File Converter</a> for best results.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 text-[10px] text-slate-500 px-1 leading-tight">
-                    DXF files are parsed client-side and rendered as real 3D geometry (lines, polylines, circles, arcs).
-                </div>
-            </div>
-
-            <!-- 3D Scene -->
-            <div class="lg:col-span-7 bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden flex flex-col">
-                <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b border-slate-700">
-                    <div class="flex items-center gap-x-3">
-                        <h3 class="font-semibold">3D Room View</h3>
-                        <div class="text-[10px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded font-mono">ORBIT • ZOOM</div>
-                    </div>
-                    <div class="text-xs text-slate-400 flex items-center gap-x-1.5">
-                        <i class="fa-solid fa-mouse"></i>
-                        <span>Drag to rotate • Scroll to zoom</span>
-                    </div>
-                </div>
-                
-                <div id="threeContainer" class="three-container flex-1 bg-slate-950 relative min-h-[420px]">
-                    <canvas id="threeCanvas" class="three-canvas"></canvas>
-                </div>
-                
-                <div class="px-5 py-3 bg-slate-900 border-t border-slate-700 flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-x-4 text-slate-400">
-                        <div class="flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-cube text-emerald-400"></i>
-                            <span id="objectCount">0 objects</span>
-                        </div>
-                        <div>Room: <span class="font-mono text-emerald-400">24' × 18'</span></div>
-                    </div>
-                    <button onclick="addRandomEquipment()" 
-                            class="text-xs flex items-center gap-x-1.5 px-3 py-1 hover:bg-slate-800 rounded-xl transition-colors">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                        <span class="font-medium">Add Equipment</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Equipment Library -->
-            <div class="lg:col-span-3 bg-slate-900 border border-slate-700 rounded-3xl p-5">
-                <div class="section-header text-slate-400 mb-3 px-1">Equipment Library</div>
-                
-                <div class="space-y-2">
-                    <div onclick="addEquipment('projector')" class="equipment-card flex items-center gap-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded-2xl cursor-pointer">
-                        <div class="w-9 h-9 bg-amber-900/30 text-amber-400 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-video text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm">Projector</div>
-                            <div class="text-[10px] text-slate-400">Ceiling mount • 4K</div>
-                        </div>
-                    </div>
-                    
-                    <div onclick="addEquipment('display')" class="equipment-card flex items-center gap-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded-2xl cursor-pointer">
-                        <div class="w-9 h-9 bg-sky-900/30 text-sky-400 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-tv text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm">Large Display</div>
-                            <div class="text-[10px] text-slate-400">86" • Wall mount</div>
-                        </div>
-                    </div>
-                    
-                    <div onclick="addEquipment('camera')" class="equipment-card flex items-center gap-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded-2xl cursor-pointer">
-                        <div class="w-9 h-9 bg-violet-900/30 text-violet-400 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-video text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm">PTZ Camera</div>
-                            <div class="text-[10px] text-slate-400">Conference • 4K</div>
-                        </div>
-                    </div>
-                    
-                    <div onclick="addEquipment('speaker')" class="equipment-card flex items-center gap-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-3 rounded-2xl cursor-pointer">
-                        <div class="w-9 h-9 bg-rose-900/30 text-rose-400 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-volume-up text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm">Ceiling Speaker</div>
-                            <div class="text-[10px] text-slate-400">Q-SYS • Array</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-5 pt-4 border-t border-slate-700">
-                    <div class="text-[10px] text-slate-400 px-1 mb-2">Quick Actions</div>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <button onclick="clearFloorPlanGeometry()" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl transition-colors text-xs font-medium">
-                            Clear Floor Plan
-                        </button>
-                        <button onclick="centerCamera()" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl transition-colors text-xs font-medium">
-                            Center View
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Layers -->
-            <div class="lg:col-span-9 bg-slate-900 border border-slate-700 rounded-3xl p-5">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                        <div class="section-header text-slate-400 mb-2.5 px-1">Layers</div>
-                        <div class="space-y-1 text-sm">
-                            <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
-                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>Base Room</span></div>
-                                <input type="checkbox" checked class="accent-blue-500" onchange="toggleLayer('room', this.checked)">
-                            </div>
-                            <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
-                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>Floor Plan (DXF)</span></div>
-                                <input type="checkbox" checked class="accent-blue-500" onchange="toggleLayer('dxf', this.checked)">
-                            </div>
-                            <div class="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-2xl">
-                                <div class="flex items-center gap-x-2"><i class="fa-solid fa-layer-group w-4"></i> <span>AV Equipment</span></div>
-                                <input type="checkbox" checked class="accent-blue-500" onchange="toggleLayer('equipment', this.checked)">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="md:col-span-2">
-                        <div class="section-header text-slate-400 mb-2.5 px-1">Current Project</div>
-                        <div class="bg-slate-800 rounded-2xl p-4 text-sm">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-semibold">Conference Room A</div>
-                                    <div class="text-xs text-slate-400">24 × 18 ft • Capacity: 18</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-emerald-400 text-xs font-medium">READY</div>
-                                    <div class="text-[10px] text-slate-400">Last saved: just now</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
-        
-        <div class="mt-8 text-center">
-            <p class="text-xs text-slate-500">
-                DXF geometry parsed &amp; rendered client-side in Three.js. Convert DWG → DXF for best results (free tools available).
-            </p>
+        <div id="legend">
+            <div><div class="color-swatch" style="background: #ff0000"></div>Red right wall</div>
+            <div><div class="color-swatch" style="background: #0000ff"></div>Blue left wall</div>
+            <div><div class="color-swatch" style="background: #ffff00"></div>Yellow back wall</div>
+            <div><div class="color-swatch" style="background: #00ff00"></div>Green front wall</div>
         </div>
     </div>
 
-    <script>
-        function initializeTailwind() {
-            document.documentElement.style.setProperty('--accent', '#3b82f6');
+    <div id="table-panel">
+        <div id="close-panel">×</div>
+        <h3 style="margin:0 0 8px 0; font-size:13px;">Selected Table</h3>
+        <label>X (in)</label><input id="table-x" type="number" step="0.125">
+        <label>Y (in)</label><input id="table-y" type="number" step="0.125">
+        <label>Length (in)</label><input id="table-length" type="number" step="0.125">
+        <label>Width (in)</label><input id="table-width" type="number" step="0.125">
+        <label>Height (in)</label><input id="table-height" type="number" step="0.125">
+        <label><input id="table-align" type="checkbox"> Show Alignment Lines</label>
+        <div style="margin-top:8px;">
+            <button id="duplicate-table">Duplicate</button>
+            <button id="remove-table">Remove</button>
+        </div>
+    </div>
+
+    <div id="room-name"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import * as dat from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.module.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xd3d3d3);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 15, 35);
+        camera.lookAt(0, 5, 0);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let selectedTableIndex = -1;
+        let isDraggingPanel = false;
+        let isDraggingPerson = false;
+        let isDraggingTable = false;
+        let draggingTableMesh = null;
+        let dragStartX, dragStartY, panelStartX, panelStartY;
+        let currentFileName = '';
+
+        const params = {
+            roomName: '',
+            room: {
+                widthInches: 240,
+                depthInches: 360,
+                heightInches: 120
+            },
+            grid: {
+                ceiling_offset_x_inches: 0,
+                ceiling_offset_y_inches: 0,
+                floor_offset_x_inches: 0,
+                floor_offset_y_inches: 0
+            },
+            mic: {
+                col: 3,
+                row: 4,
+                rotation: 0,
+                type: 'basic'          // 'basic' | 'tcc2' | 'mxa920'
+            },
+            person: {
+                xInches: 120,
+                yInches: 180,
+                heightInches: 72
+            },
+            tables: [
+                {
+                    xInches: 120,
+                    yInches: 180,
+                    lengthInches: 72,
+                    widthInches: 36,
+                    heightInches: 30,
+                    showAlignment: false
+                }
+            ],
+            camera: {
+                col: 1,
+                row: 1,
+                type: 'basic'          // 'basic' | 'qsc-ptz'
+            },
+            zone: {
+                horizMin: 0,
+                horizMax: 360,
+                vertMin: 0,
+                vertMax: 90
+            },
+            showOrigin: true,
+            showMic: true,
+            showPerson: true,
+            showTable: true,
+            showCamera: true,
+            showAlignment: false,
+            showZone: false,
+            ceilingTransparency: 0.5,
+            wallTransparency: 0.5,
+            showRedWall: true,
+            showBlueWall: true,
+            showYellowWall: true,
+            showGreenWall: true
+        };
+
+        let roomMesh, floorMesh, gridLines, floorGridLines, micMesh, personMesh, tableMeshes = [], camMesh, originMesh, laserLine, alignmentLines = [], zoneLines = [];
+        let laserMaterial;
+
+        const tablePanel = document.getElementById('table-panel');
+        const roomNameDiv = document.getElementById('room-name');
+
+        // ========== DEVICE MODEL CREATORS ==========
+
+        function createBasicMic() {
+            const group = new THREE.Group();
+
+            const micSquare = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.08, 2),
+                new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.65 })
+            );
+            group.add(micSquare);
+
+            const dirArrow = new THREE.Mesh(
+                new THREE.ConeGeometry(0.22, 0.65, 16),
+                new THREE.MeshBasicMaterial({ color: 0xffffff })
+            );
+            dirArrow.position.set(0, 0.12, -0.85);
+            dirArrow.rotation.x = -Math.PI / 2;
+            group.add(dirArrow);
+
+            return group;
         }
 
-        let scene, camera, renderer;
-        let roomObjects = [];
-        let dxfObjects = [];
-        let equipmentObjects = [];
-        let isDragging = false;
-        let previousMouseX = 0, previousMouseY = 0;
-        let rotationY = 0.8, rotationX = 0.6, zoom = 1;
-        let currentFile = null;
-        let currentFileType = '';
+        function createTCC2Mic() {
+            const group = new THREE.Group();
 
-        function initThreeJS() {
-            const container = document.getElementById('threeContainer');
-            const canvas = document.getElementById('threeCanvas');
-            
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.shadowMap.enabled = true;
-            
-            scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x0f172a, 40, 120);
-            
-            camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 200);
-            camera.position.set(18, 22, 26);
-            
-            scene.add(new THREE.AmbientLight(0x64748b, 0.6));
-            scene.add(new THREE.HemisphereLight(0x64748b, 0x1e2937, 0.8));
-            
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-            dirLight.position.set(25, 40, 15);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
-            
-            createRoom();
-            
-            addEquipmentToScene('projector', 4, 3.2, -6);
-            addEquipmentToScene('display', -7, 2.5, 0);
-            addEquipmentToScene('camera', 0, 4.5, -8.5);
-            addEquipmentToScene('speaker', 8, 3.8, 6);
-            addEquipmentToScene('speaker', -8, 3.8, 6);
-            
-            const grid = new THREE.GridHelper(30, 30, 0x334155, 0x1e2937);
-            grid.position.y = 0.01;
-            scene.add(grid);
-            roomObjects.push(grid);
-            
-            const threeCanvas = document.getElementById('threeCanvas');
-            threeCanvas.addEventListener('mousedown', onMouseDown);
-            threeCanvas.addEventListener('mouseup', onMouseUp);
-            threeCanvas.addEventListener('mousemove', onMouseMove);
-            threeCanvas.addEventListener('wheel', onWheel);
-            threeCanvas.addEventListener('mouseleave', onMouseUp);
-            
-            threeCanvas.addEventListener('touchstart', onTouchStart);
-            threeCanvas.addEventListener('touchend', onTouchEnd);
-            threeCanvas.addEventListener('touchmove', onTouchMove);
-            
-            window.addEventListener('resize', () => {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            });
-            
-            animate();
-            updateObjectCount();
+            // Main white housing (slightly rectangular)
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(2.2, 0.12, 1.8),
+                new THREE.MeshBasicMaterial({ color: 0xf8f8f8 })
+            );
+            group.add(base);
+
+            // Dark border / frame
+            const frame = new THREE.Mesh(
+                new THREE.BoxGeometry(2.35, 0.13, 1.95),
+                new THREE.MeshBasicMaterial({ color: 0x333333 })
+            );
+            frame.position.y = -0.01;
+            group.add(frame);
+
+            // Array of microphone capsules (Sennheiser style)
+            const capMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const rows = 5, cols = 6;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const cap = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.09, 0.09, 0.06, 12),
+                        capMat
+                    );
+                    cap.rotation.x = Math.PI / 2;
+                    cap.position.set(
+                        -0.85 + c * 0.34,
+                        0.08,
+                        -0.55 + r * 0.28
+                    );
+                    group.add(cap);
+                }
+            }
+
+            // Small status LED
+            const led = new THREE.Mesh(
+                new THREE.SphereGeometry(0.06, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0x00ff88 })
+            );
+            led.position.set(0.9, 0.1, 0.6);
+            group.add(led);
+
+            return group;
         }
-        
-        function createRoom() {
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 18), new THREE.MeshLambertMaterial({ color: 0x334155 }));
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            floor.userData.layer = 'room';
-            scene.add(floor);
-            roomObjects.push(floor);
-            
-            const wallMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
-            const wallHeight = 10;
-            
-            const wallConfigs = [
-                { w: 24, h: wallHeight, x: 0, y: wallHeight/2, z: -9, ry: 0 },
-                { w: 24, h: wallHeight, x: 0, y: wallHeight/2, z: 9, ry: Math.PI },
-                { w: 18, h: wallHeight, x: -12, y: wallHeight/2, z: 0, ry: Math.PI/2 },
-                { w: 18, h: wallHeight, x: 12, y: wallHeight/2, z: 0, ry: -Math.PI/2 }
+
+        function createMXA920Mic() {
+            const group = new THREE.Group();
+
+            // Large white rectangular array (Shure MXA920 style)
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(2.6, 0.1, 2.6),
+                new THREE.MeshBasicMaterial({ color: 0xf5f5f5 })
+            );
+            group.add(base);
+
+            // Subtle raised inner area
+            const inner = new THREE.Mesh(
+                new THREE.BoxGeometry(2.3, 0.12, 2.3),
+                new THREE.MeshBasicMaterial({ color: 0xeeeeee })
+            );
+            inner.position.y = 0.01;
+            group.add(inner);
+
+            // Grid of microphone elements (more dense than TCC2)
+            const capMat = new THREE.MeshBasicMaterial({ color: 0x1a1a1a });
+            const rows = 8, cols = 8;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const cap = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.07, 0.07, 0.05, 10),
+                        capMat
+                    );
+                    cap.rotation.x = Math.PI / 2;
+                    cap.position.set(
+                        -1.05 + c * 0.3,
+                        0.09,
+                        -1.05 + r * 0.3
+                    );
+                    group.add(cap);
+                }
+            }
+
+            // Thin silver border
+            const border = new THREE.Mesh(
+                new THREE.BoxGeometry(2.75, 0.11, 2.75),
+                new THREE.MeshBasicMaterial({ color: 0x888888 })
+            );
+            border.position.y = -0.005;
+            group.add(border);
+
+            // Small Shure-style logo indicator
+            const logo = new THREE.Mesh(
+                new THREE.BoxGeometry(0.4, 0.02, 0.15),
+                new THREE.MeshBasicMaterial({ color: 0x0066cc })
+            );
+            logo.position.set(0, 0.08, 1.1);
+            group.add(logo);
+
+            return group;
+        }
+
+        function createBasicCamera() {
+            const group = new THREE.Group();
+
+            const cone = new THREE.Mesh(
+                new THREE.ConeGeometry(0.2, 0.4, 16),
+                new THREE.MeshBasicMaterial({ color: 0x00cc44 })
+            );
+            cone.rotation.z = -Math.PI / 2;
+            group.add(cone);
+
+            return group;
+        }
+
+        function createQSCCamera() {
+            const group = new THREE.Group();
+
+            // Ceiling mount base (white)
+            const mount = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.35, 0.35, 0.15, 20),
+                new THREE.MeshBasicMaterial({ color: 0xf0f0f0 })
+            );
+            mount.position.y = 0.075;
+            group.add(mount);
+
+            // PTZ body (white/gray)
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(0.55, 0.35, 0.7),
+                new THREE.MeshBasicMaterial({ color: 0xdddddd })
+            );
+            body.position.y = 0.25;
+            group.add(body);
+
+            // Lens / camera head
+            const lens = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.18, 0.18, 0.35, 16),
+                new THREE.MeshBasicMaterial({ color: 0x222222 })
+            );
+            lens.rotation.x = Math.PI / 2;
+            lens.position.set(0, 0.25, 0.55);
+            group.add(lens);
+
+            // Lens glass highlight
+            const glass = new THREE.Mesh(
+                noup THREE.CylinderGeometry(0.12, 0.12, 0.05, 16),
+                new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.6 })
+            );
+            glass.rotation.x = Math.PI / 2;
+            glass.position.set(0, 0.25, 0.73);
+            group.add(glass);
+
+            // Small QSC-style accent
+            const accent = new THREE.Mesh(
+                new THREE.BoxGeometry(0.08, 0.08, 0.5),
+                new THREE.MeshBasicMaterial({ color: 0x0066cc })
+            );
+            accent.position.set(0, 0.42, 0.1);
+            group.add(accent);
+
+            return group;
+        }
+
+        // ========== END DEVICE MODELS ==========
+
+        function inchesToFtIn(inches) {
+            const ft = Math.floor(inches / 12);
+            const rem = inches % 12;
+            const whole = Math.floor(rem);
+            const fracNum = Math.round((rem - whole) / 0.125);
+            let fracStr = '';
+            if (fracNum > 0) fracStr = ` ${fracNum}/8`;
+            return `${ft}ft ${whole}${fracStr}in`;
+        }
+
+        function updateMicRange() {
+            const roomWidth = params.room.widthInches / 12;
+            const roomDepth = params.room.depthInches / 12;
+            const maxCol = Math.floor(roomWidth / 2);
+            const maxRow = Math.floor(roomDepth / 2);
+            if (micColController) {
+                micColController.min(1).max(maxCol);
+                micColController.updateDisplay();
+            }
+            if (micRowController) {
+                micRowController.min(1).max(maxRow);
+                micRowController.updateDisplay();
+            }
+            if (camColController) {
+                camColController.min(1).max(maxCol);
+                camColController.updateDisplay();
+            }
+            if (camRowController) {
+                camRowController.min(1).max(maxRow);
+                camRowController.updateDisplay();
+            }
+            params.mic.col = Math.max(1, Math.min(params.mic.col, maxCol));
+            params.mic.row = Math.max(1, Math.min(params.mic.row, maxRow));
+            params.camera.col = Math.max(1, Math.min(params.camera.col, maxCol));
+            params.camera.row = Math.max(1, Math.min(params.camera.row, maxRow));
+        }
+
+        function buildRoom() {
+            const roomWidth = params.room.widthInches / 12;
+            const roomDepth = params.room.depthInches / 12;
+            const roomHeight = params.room.heightInches / 12;
+            const personX = params.person.xInches / 12;
+            const personY = params.person.yInches / 12;
+            const personHeight = params.person.heightInches / 12;
+
+            updateMicRange();
+
+            // Remove old meshes
+            if (roomMesh) scene.remove(roomMesh);
+            if (floorMesh) scene.remove(floorMesh);
+            if (gridLines) scene.remove(gridLines);
+            if (floorGridLines) scene.remove(floorGridLines);
+            if (micMesh) scene.remove(micMesh);
+            if (personMesh) scene.remove(personMesh);
+            tableMeshes.forEach(tm => scene.remove(tm));
+            tableMeshes = [];
+            if (camMesh) scene.remove(camMesh);
+            if (originMesh) scene.remove(originMesh);
+            if (laserLine) scene.remove(laserLine);
+            alignmentLines.forEach(l => scene.remove(l));
+            alignmentLines = [];
+            zoneLines.forEach(l => scene.remove(l));
+            zoneLines = [];
+
+            // Room walls and ceiling
+            const roomGeo = new THREE.BoxGeometry(roomWidth, roomHeight, roomDepth);
+            const roomMat = [
+                new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: params.wallTransparency * (params.showRedWall ? 1 : 0) }),
+                new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide, transparent: true, opacity: params.wallTransparency * (params.showBlueWall ? 1 : 0) }),
+                new THREE.MeshBasicMaterial({ color: 0xdddddd, side: THREE.DoubleSide, transparent: true, opacity: params.ceilingTransparency }),
+                new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide, transparent: true, opacity: 0 }),
+                new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide, transparent: true, opacity: params.wallTransparency * (params.showYellowWall ? 1 : 0) }),
+                new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, transparent: true, opacity: params.wallTransparency * (params.showGreenWall ? 1 : 0) })
             ];
-            
-            wallConfigs.forEach(cfg => {
-                const wall = new THREE.Mesh(new THREE.PlaneGeometry(cfg.w, cfg.h), wallMat);
-                wall.position.set(cfg.x, cfg.y, cfg.z);
-                wall.rotation.y = cfg.ry;
-                wall.userData.layer = 'room';
-                scene.add(wall);
-                roomObjects.push(wall);
-            });
-            
-            const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(24, 18), new THREE.MeshLambertMaterial({ color: 0x1e2937 }));
-            ceiling.position.y = wallHeight;
-            ceiling.rotation.x = Math.PI / 2;
-            ceiling.userData.layer = 'room';
-            scene.add(ceiling);
-            roomObjects.push(ceiling);
-        }
-        
-        function addEquipmentToScene(type, x, y, z) {
-            let mesh;
-            switch(type) {
-                case 'projector': mesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 2.2), new THREE.MeshLambertMaterial({ color: 0xf59e0b })); break;
-                case 'display': mesh = new THREE.Mesh(new THREE.BoxGeometry(8, 4.5, 0.4), new THREE.MeshLambertMaterial({ color: 0x0ea5e9 })); break;
-                case 'camera': mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.8, 16), new THREE.MeshLambertMaterial({ color: 0x8b5cf6 })); break;
-                case 'speaker': mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.7, 24), new THREE.MeshLambertMaterial({ color: 0xf43f5e })); break;
-                default: mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x64748b }));
-            }
-            mesh.position.set(x, y, z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            mesh.userData = { type, layer: 'equipment', id: Date.now() };
-            scene.add(mesh);
-            equipmentObjects.push(mesh);
-            updateObjectCount();
-        }
-        
-        function addEquipment(type) {
-            const x = (Math.random() - 0.5) * 16;
-            const z = (Math.random() - 0.5) * 12;
-            const y = (type === 'display') ? 3 : 3.5;
-            addEquipmentToScene(type, x, y, z);
-        }
-        
-        function addRandomEquipment() {
-            const types = ['projector', 'display', 'camera', 'speaker'];
-            addEquipment(types[Math.floor(Math.random() * types.length)]);
-        }
-        
-        function clearEquipment() {
-            equipmentObjects.forEach(obj => scene.remove(obj));
-            equipmentObjects = [];
-            updateObjectCount();
-        }
-        
-        function clearFloorPlanGeometry() {
-            dxfObjects.forEach(obj => scene.remove(obj));
-            dxfObjects = [];
-            updateObjectCount();
-        }
-        
-        function toggleLayer(layer, visible) {
-            let objects = [];
-            if (layer === 'room') objects = roomObjects;
-            else if (layer === 'dxf') objects = dxfObjects;
-            else if (layer === 'equipment') objects = equipmentObjects;
-            
-            objects.forEach(obj => { if (obj) obj.visible = visible; });
-        }
-        
-        function updateObjectCount() {
-            const countEl = document.getElementById('objectCount');
-            if (countEl) countEl.textContent = `${equipmentObjects.length + dxfObjects.length} objects`;
-        }
-        
-        function centerCamera() {
-            camera.position.set(18, 22, 26);
-            rotationY = 0.8; rotationX = 0.6; zoom = 1;
-            updateCameraPosition();
-        }
-        
-        function updateCameraPosition() {
-            const distance = 32 * zoom;
-            camera.position.x = Math.sin(rotationY) * Math.cos(rotationX) * distance;
-            camera.position.z = Math.cos(rotationY) * Math.cos(rotationX) * distance;
-            camera.position.y = Math.sin(rotationX) * distance + 8;
-            camera.lookAt(0, 6, 0);
-        }
-        
-        function onMouseDown(e) { isDragging = true; previousMouseX = e.clientX; previousMouseY = e.clientY; }
-        function onMouseUp() { isDragging = false; }
-        function onMouseMove(e) {
-            if (!isDragging) return;
-            rotationY += (e.clientX - previousMouseX) * 0.005;
-            rotationX += (e.clientY - previousMouseY) * 0.005;
-            rotationX = Math.max(-1.2, Math.min(1.5, rotationX));
-            updateCameraPosition();
-            previousMouseX = e.clientX; previousMouseY = e.clientY;
-        }
-        function onWheel(e) { e.preventDefault(); zoom = Math.max(0.4, Math.min(2.5, zoom + e.deltaY * -0.0015)); updateCameraPosition(); }
-        
-        let touchStartX = 0, touchStartY = 0;
-        function onTouchStart(e) { if (e.touches.length === 1) { isDragging = true; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; } }
-        function onTouchEnd() { isDragging = false; }
-        function onTouchMove(e) {
-            if (!isDragging || e.touches.length !== 1) return;
-            rotationY += (e.touches[0].clientX - touchStartX) * 0.006;
-            rotationX += (e.touches[0].clientY - touchStartY) * 0.006;
-            rotationX = Math.max(-1.2, Math.min(1.5, rotationX));
-            updateCameraPosition();
-            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
-        }
-        
-        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
-        
-        function resetScene() {
-            clearEquipment();
-            clearFloorPlanGeometry();
-            addEquipmentToScene('projector', 4, 3.2, -6);
-            addEquipmentToScene('display', -7, 2.5, 0);
-            addEquipmentToScene('camera', 0, 4.5, -8.5);
-            addEquipmentToScene('speaker', 8, 3.8, 6);
-            addEquipmentToScene('speaker', -8, 3.8, 6);
-            centerCamera();
-        }
-        
-        function exportScene() {
-            const link = document.createElement('a');
-            link.download = 'av-room-layout.png';
-            renderer.domElement.toBlob(blob => { link.href = URL.createObjectURL(blob); link.click(); });
-        }
+            roomMesh = new THREE.Mesh(roomGeo, roomMat);
+            roomMesh.position.set(0, roomHeight / 2, 0);
+            scene.add(roomMesh);
 
-        // DXF PARSER
-        function parseDXF(text) {
-            const lines = text.split(/\r?\n/);
-            const entities = [];
-            let current = null;
-            
-            for (let i = 0; i < lines.length; i++) {
-                const code = lines[i].trim();
-                if (code === '0' && i + 1 < lines.length) {
-                    const type = lines[i+1].trim().toUpperCase();
-                    if (['LINE','POLYLINE','LWPOLYLINE','CIRCLE','ARC'].includes(type)) {
-                        if (current) entities.push(current);
-                        current = { type, points: [] };
-                    }
-                }
-                if (current) {
-                    const val = lines[i+1] ? lines[i+1].trim() : '';
-                    const c = parseInt(code);
-                    if (c === 10 || c === 11) current.points.push({x: parseFloat(val) || 0, y: 0, z: 0});
-                    if (c === 20 || c === 21) { if (current.points.length) current.points[current.points.length-1].y = parseFloat(val) || 0; }
-                    if (c === 30 || c === 31) { if (current.points.length) current.points[current.points.length-1].z = parseFloat(val) || 0; }
-                    if (c === 40 && (current.type === 'CIRCLE' || current.type === 'ARC')) current.radius = parseFloat(val);
-                    if (c === 50 && current.type === 'ARC') current.startAngle = (parseFloat(val) || 0) * Math.PI / 180;
-                    if (c === 51 && current.type === 'ARC') current.endAngle = (parseFloat(val) || 0) * Math.PI / 180;
-                }
+            // Thick floor
+            floorMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(roomWidth, 1, roomDepth),
+                new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide })
+            );
+            floorMesh.position.set(0, -0.5, 0);
+            scene.add(floorMesh);
+
+            // Ceiling grid
+            const gridGeo = new THREE.BufferGeometry();
+            const gridMaterial = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+            const lines = [];
+            let ox = params.grid.ceiling_offset_x_inches / 12;
+            let oy = params.grid.ceiling_offset_y_inches / 12;
+            for (let x = -roomWidth / 2; x <= roomWidth / 2 + 0.01; x += 2) {
+                lines.push(x + ox, roomHeight, -roomDepth / 2);
+                lines.push(x + ox, roomHeight, roomDepth / 2);
             }
-            if (current) entities.push(current);
-            return entities;
-        }
-        
-        function renderDXFToScene(entities) {
-            clearFloorPlanGeometry();
-            const mat = new THREE.LineBasicMaterial({ color: 0x22c55e, linewidth: 1.5 });
-            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            
-            entities.forEach(ent => {
-                let geo = null;
-                
-                if (ent.type === 'LINE' && ent.points.length >= 2) {
-                    geo = new THREE.BufferGeometry().setFromPoints([
-                        new THREE.Vector3(ent.points[0].x, ent.points[0].y, ent.points[0].z || 0),
-                        new THREE.Vector3(ent.points[1].x, ent.points[1].y, ent.points[1].z || 0)
-                    ]);
-                } else if ((ent.type === 'POLYLINE' || ent.type === 'LWPOLYLINE') && ent.points.length >= 2) {
-                    geo = new THREE.BufferGeometry().setFromPoints(ent.points.map(p => new THREE.Vector3(p.x, p.y, p.z || 0)));
-                } else if (ent.type === 'CIRCLE' && ent.radius) {
-                    const curve = new THREE.EllipseCurve(0, 0, ent.radius, ent.radius, 0, Math.PI*2);
-                    geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(64).map(p => new THREE.Vector3(p.x, p.y, 0)));
-                } else if (ent.type === 'ARC' && ent.radius && ent.startAngle !== undefined) {
-                    const curve = new THREE.EllipseCurve(0, 0, ent.radius, ent.radius, ent.startAngle || 0, ent.endAngle || Math.PI*2);
-                    geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0)));
+            for (let z = -roomDepth / 2; z <= roomDepth / 2 + 0.01; z += 2) {
+                lines.push(-roomWidth / 2, roomHeight, z + oy);
+                lines.push(roomWidth / 2, roomHeight, z + oy);
+            }
+            gridGeo.setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
+            gridLines = new THREE.LineSegments(gridGeo, gridMaterial);
+            scene.add(gridLines);
+
+            // Floor grid
+            const floorGridGeo = new THREE.BufferGeometry();
+            const floorGridMaterial = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+            const floorLines = [];
+            let f_ox = params.grid.floor_offset_x_inches / 12;
+            let f_oy = params.grid.floor_offset_y_inches / 12;
+            for (let x = -roomWidth / 2; x <= roomWidth / 2 + 0.01; x += 2) {
+                floorLines.push(x + f_ox, 0, -roomDepth / 2);
+                floorLines.push(x + f_ox, 0, roomDepth / 2);
+            }
+            for (let z = -roomDepth / 2; z <= roomDepth / 2 + 0.01; z += 2) {
+                floorLines.push(-roomWidth / 2, 0, z + f_oy);
+                floorLines.push(roomWidth / 2, 0, z + f_oy);
+            }
+            floorGridGeo.setAttribute('position', new THREE.Float32BufferAttribute(floorLines, 3));
+            floorGridLines = new THREE.LineSegments(floorGridGeo, floorGridMaterial);
+            scene.add(floorGridLines);
+
+            // === MICROPHONE (chosen model) ===
+            const mic_x = ox + (params.mic.col - 1) * 2 - roomWidth / 2 + 1;
+            const mic_z = oy + (params.mic.row - 1) * 2 - roomDepth / 2 + 1;
+
+            let micVisual;
+            if (params.mic.type === 'tcc2') {
+                micVisual = createTCC2Mic();
+            } else if (params.mic.type === 'mxa920') {
+                micVisual = createMXA920Mic();
+            } else {
+                micVisual = createBasicMic();
+            }
+
+            micVisual.position.set(mic_x, roomHeight - 0.05, mic_z);
+            micVisual.rotation.y = params.mic.rotation * Math.PI / 180;
+            micVisual.visible = params.showMic;
+            scene.add(micVisual);
+            micMesh = micVisual;
+
+            // === PERSON (humanoid) ===
+            personMesh = new THREE.Group();
+            personMesh.position.set(personX - roomWidth / 2, 0, personY - roomDepth / 2);
+            personMesh.visible = params.showPerson;
+
+            const skinMat = new THREE.MeshBasicMaterial({ color: 0xffdbac });
+            const bodyMat = new THREE.MeshBasicMaterial({ color: 0x2c5aa0 });
+            const limbMat = new THREE.MeshBasicMaterial({ color: 0x1e3a6e });
+
+            const headR = Math.max(0.25, personHeight * 0.055);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(headR, 24, 24), skinMat);
+            head.position.y = personHeight - headR * 0.85;
+            personMesh.add(head);
+
+            const torsoH = personHeight * 0.36;
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.30, torsoH, 16), bodyMat);
+            torso.position.y = head.position.y - headR * 0.9 - torsoH / 2;
+            personMesh.add(torso);
+
+            const armLen = personHeight * 0.30;
+            const armR = 0.08;
+            const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(armR, armR, armLen, 8), bodyMat);
+            leftArm.position.set(-0.36, torso.position.y + 0.12, 0);
+            leftArm.rotation.z = 0.22;
+            personMesh.add(leftArm);
+
+            const rightArm = leftArm.clone();
+            rightArm.position.x = +0.36;
+            rightArm.rotation.z = -0.22;
+            personMesh.add(rightArm);
+
+            const legLen = personHeight * 0.40;
+            const legR = 0.10;
+            const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(legR, legR, legLen, 8), limbMat);
+            leftLeg.position.set(-0.17, legLen / 2, 0);
+            personMesh.add(leftLeg);
+
+            const rightLeg = leftLeg.clone();
+            rightLeg.position.x = +0.17;
+            personMesh.add(rightLeg);
+
+            scene.add(personMesh);
+
+            const mouthY = personHeight - 0.52;
+
+            // Laser from mic to mouth
+            laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+            const laserPoints = [];
+            laserPoints.push(new THREE.Vector3(micMesh.position.x, micMesh.position.y, micMesh.position.z));
+            laserPoints.push(new THREE.Vector3(personMesh.position.x, mouthY, personMesh.position.z));
+            const laserGeo = new THREE.BufferGeometry().setFromPoints(laserPoints);
+            laserLine = new THREE.Line(laserGeo, laserMaterial);
+            laserLine.visible = params.showMic && params.showPerson;
+            scene.add(laserLine);
+
+            // Tables
+            params.tables.forEach((table, index) => {
+                const tableX = table.xInches / 12;
+                const tableY = table.yInches / 12;
+                const tableLength = table.lengthInches / 12;
+                const tableWidth = table.widthInches / 12;
+                const tableHeight = table.heightInches / 12;
+
+                const tm = new THREE.Mesh(new THREE.BoxGeometry(tableLength, tableHeight, tableWidth), new THREE.MeshBasicMaterial({ color: 0x8b4513 }));
+                tm.position.set(tableX - roomWidth / 2 + tableLength / 2, tableHeight / 2, tableY - roomDepth / 2 + tableWidth / 2);
+                tm.userData = { index };
+                tm.visible = params.showTable;
+                scene.add(tm);
+                tableMeshes.push(tm);
+
+                if (index === selectedTableIndex) {
+                    const cornerMarker = new THREE.Mesh(new THREE.SphereGeometry(0.1), new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+                    cornerMarker.position.set(-tableLength / 2, tableHeight / 2, -tableWidth / 2);
+                    tm.add(cornerMarker);
                 }
-                
-                if (geo) {
-                    const line = new THREE.Line(geo, mat);
-                    line.userData.layer = 'dxf';
-                    
-                    if ((ent.type === 'CIRCLE' || ent.type === 'ARC') && ent.points && ent.points[0]) {
-                        line.position.set(ent.points[0].x || 0, ent.points[0].y || 0, 0);
-                    }
-                    
-                    scene.add(line);
-                    dxfObjects.push(line);
-                    
-                    if (ent.points) ent.points.forEach(p => {
-                        minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
-                        minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+
+                if (table.showAlignment) {
+                    const corner = new THREE.Vector3(tm.position.x - tableLength / 2, tableHeight, tm.position.z - tableWidth / 2);
+                    const mat = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true });
+                    const dirs = [
+                        [ roomWidth / 2, corner.z ], [ -roomWidth / 2, corner.z ],
+                        [ corner.x, roomDepth / 2 ], [ corner.x, -roomDepth / 2 ],
+                        [ corner.x, corner.z, roomHeight ], [ corner.x, corner.z, 0 ]
+                    ];
+                    dirs.forEach(d => {
+                        let p;
+                        if (d.length === 2) p = new THREE.Vector3(d[0], corner.y, d[1]);
+                        else p = new THREE.Vector3(d[0], d[2], d[1]);
+                        const geo = new THREE.BufferGeometry().setFromPoints([corner, p]);
+                        const line = new THREE.Line(geo, mat.clone());
+                        scene.add(line);
+                        alignmentLines.push(line);
                     });
                 }
             });
-            
-            // Auto center & scale
-            if (dxfObjects.length > 0 && minX < Infinity) {
-                const cx = (minX + maxX) / 2;
-                const cy = (minY + maxY) / 2;
-                const scale = Math.min(18 / Math.max(maxX-minX || 1, 1), 14 / Math.max(maxY-minY || 1, 1));
-                
-                dxfObjects.forEach(obj => {
-                    obj.position.x -= cx;
-                    obj.position.y -= cy;
-                    obj.scale.set(scale, scale, 1);
+
+            // === CAMERA (chosen model) ===
+            const cam_x = ox + (params.camera.col - 1) * 2 - roomWidth / 2 + 1;
+            const cam_z = oy + (params.camera.row - 1) * 2 - roomDepth / 2 + 1;
+
+            let camVisual;
+            if (params.camera.type === 'qsc-ptz') {
+                camVisual = createQSCCamera();
+            } else {
+                camVisual = createBasicCamera();
+            }
+
+            camVisual.position.set(cam_x, roomHeight - 0.2, cam_z);
+            camVisual.visible = params.showCamera;
+            scene.add(camVisual);
+            camMesh = camVisual;
+
+            // Origin axes
+            if (params.showOrigin) {
+                const originGeo = new THREE.BufferGeometry();
+                const originMaterial = new THREE.LineBasicMaterial({ vertexColors: true });
+                const points = [], colors = [];
+                points.push(0,0,0, 1,0,0); colors.push(1,0,0,1,0,0);
+                points.push(0,0,0, 0,1,0); colors.push(0,1,0,0,1,0);
+                points.push(0,0,0, 0,0,1); colors.push(0,0,1,0,0,1);
+                originGeo.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+                originGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                originMesh = new THREE.LineSegments(originGeo, originMaterial);
+                scene.add(originMesh);
+            }
+
+            // Person alignment lines
+            if (params.showAlignment && params.showPerson) {
+                const headTopY = personHeight;
+                const headPos = new THREE.Vector3(personMesh.position.x, headTopY, personMesh.position.z);
+                const mat = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true });
+                const dirs = [
+                    [roomWidth/2, headPos.z], [-roomWidth/2, headPos.z],
+                    [headPos.x, roomDepth/2], [headPos.x, -roomDepth/2],
+                    [headPos.x, headPos.z, roomHeight], [headPos.x, headPos.z, 0]
+                ];
+                dirs.forEach(d => {
+                    let p = (d.length === 2) ? new THREE.Vector3(d[0], headPos.y, d[1]) : new THREE.Vector3(d[0], d[2], d[1]);
+                    const geo = new THREE.BufferGeometry().setFromPoints([headPos, p]);
+                    const line = new THREE.Line(geo, mat.clone());
+                    scene.add(line);
+                    alignmentLines.push(line);
                 });
             }
-            updateObjectCount();
+
+            // Zone boundary rays
+            if (params.showZone && params.showMic) {
+                const theta = -params.mic.rotation * Math.PI / 180;
+                const cos_theta = Math.cos(theta);
+                const sin_theta = Math.sin(theta);
+                const micPos = micMesh.position.clone();
+                const mat = new THREE.LineBasicMaterial({ color: 0x00ff00, opacity: 0.5, transparent: true });
+                const corners = [
+                    { h: params.zone.horizMin, v: params.zone.vertMin },
+                    { h: params.zone.horizMin, v: params.zone.vertMax },
+                    { h: params.zone.horizMax, v: params.zone.vertMin },
+                    { h: params.zone.horizMax, v: params.zone.vertMax },
+                ];
+                corners.forEach(c => {
+                    const az = c.h * Math.PI / 180;
+                    const el = c.v * Math.PI / 180;
+                    const rotated_dx = Math.cos(az);
+                    const rotated_dz = Math.sin(az);
+                    const dx = rotated_dx * cos_theta + rotated_dz * sin_theta;
+                    const dz = -rotated_dx * sin_theta + rotated_dz * cos_theta;
+                    const cos_el = Math.cos(el);
+                    const u = new THREE.Vector3(cos_el * dx, -Math.sin(el), cos_el * dz).normalize();
+                    if (u.y >= -0.001) return;
+                    const t = -micPos.y / u.y;
+                    const end = micPos.clone().add(u.multiplyScalar(t));
+                    const geo = new THREE.BufferGeometry().setFromPoints([micPos, end]);
+                    const line = new THREE.Line(geo, mat.clone());
+                    scene.add(line);
+                    zoneLines.push(line);
+                });
+            }
+
+            if (params.roomName) roomNameDiv.innerHTML = `Room: ${params.roomName}`;
+            updateAngles();
         }
-        
-        function handleDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
-        function handleDragLeave(e) { e.preventDefault(); document.getElementById('dropzone').classList.remove('dragover'); }
-        
-        function handleDrop(e) {
-            e.preventDefault();
-            document.getElementById('dropzone').classList.remove('dragover');
-            if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+
+        function updateAngles() {
+            const roomHeight = params.room.heightInches / 12;
+            const personHeight = params.person.heightInches / 12;
+            const mouthY = personHeight - 0.52;
+
+            if (!micMesh || !micMesh.visible || !personMesh || !personMesh.visible) {
+                document.getElementById('horiz').textContent = '—';
+                document.getElementById('vert').textContent = '—';
+                document.getElementById('dist').textContent = '—';
+                document.getElementById('floor-dist').textContent = '—';
+                return;
+            }
+
+            const mic_x = micMesh.position.x;
+            const mic_y = micMesh.position.y;
+            const mic_z = micMesh.position.z;
+            const xp = personMesh.position.x;
+            const yp = mouthY;
+            const zp = personMesh.position.z;
+
+            const v = new THREE.Vector3(xp - mic_x, yp - mic_y, zp - mic_z);
+            const dist = v.length();
+            if (dist === 0) {
+                document.getElementById('horiz').textContent = '0.00°';
+                document.getElementById('vert').textContent = '—';
+                document.getElementById('dist').textContent = '0 ft 0 in';
+                document.getElementById('floor-dist').textContent = '0 ft 0 in';
+                return;
+            }
+
+            const u = v.clone().normalize();
+            const theta = -params.mic.rotation * Math.PI / 180;
+            const dx = u.x;
+            const dz = u.z;
+            const rotated_dx = dx * Math.cos(theta) - dz * Math.sin(theta);
+            const rotated_dz = dx * Math.sin(theta) + dz * Math.cos(theta);
+
+            let azimuth = Math.atan2(rotated_dx, rotated_dz) * 180 / Math.PI;
+            if (azimuth < 0) azimuth += 360;
+            let elevation = 90 - Math.acos(-u.y) * 180 / Math.PI;
+            if (elevation < 0) elevation = 0;
+
+            const totalInches = dist * 12;
+            const floorDistInches = Math.sqrt((xp - mic_x) ** 2 + (zp - mic_z) ** 2) * 12;
+
+            document.getElementById('horiz').textContent = `${azimuth.toFixed(2)}°`;
+            document.getElementById('vert').textContent = `${elevation.toFixed(2)}°`;
+            document.getElementById('dist').textContent = inchesToFtIn(totalInches);
+            document.getElementById('floor-dist').textContent = inchesToFtIn(floorDistInches);
+
+            laserMaterial.color.set(0xff0000);
+            if (params.showZone &&
+                azimuth >= params.zone.horizMin && azimuth <= params.zone.horizMax &&
+                elevation >= params.zone.vertMin && elevation <= params.zone.vertMax) {
+                laserMaterial.color.set(0x00ff00);
+            }
         }
-        
-        function handleFileSelect(e) {
-            if (e.target.files[0]) processFile(e.target.files[0]);
-        }
-        
-        function processFile(file) {
-            currentFile = file;
-            currentFileType = file.name.toLowerCase().endsWith('.dxf') ? 'dxf' : 'dwg';
-            
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-            document.getElementById('fileType').textContent = currentFileType.toUpperCase();
-            
-            const dwgNote = document.getElementById('dwgNote');
-            if (currentFileType === 'dwg') dwgNote.classList.remove('hidden'); else dwgNote.classList.add('hidden');
-            
-            document.getElementById('fileInfo').classList.remove('hidden');
-            document.getElementById('dropzone').classList.add('hidden');
-        }
-        
-        function clearFile() {
-            currentFile = null;
-            currentFileType = '';
-            document.getElementById('fileInfo').classList.add('hidden');
-            document.getElementById('dropzone').classList.remove('hidden');
-            document.getElementById('fileInput').value = '';
-            document.getElementById('dwgNote').classList.add('hidden');
-        }
-        
-        function loadFloorPlanIntoScene() {
-            if (!currentFile) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                if (currentFileType === 'dxf') {
-                    try {
-                        const entities = parseDXF(ev.target.result);
-                        if (entities.length > 0) {
-                            renderDXFToScene(entities);
-                            showToast(`Rendered ${entities.length} DXF entities as 3D geometry.`);
-                        } else {
-                            showToast('No geometry found in this DXF file.');
-                        }
-                    } catch(e) {
-                        console.error(e);
-                        showToast('Failed to parse DXF. Try exporting a simpler version.');
-                    }
-                } else {
-                    showToast('DWG files are not parsed directly. Convert to DXF using free tools and re-upload.');
-                }
-            };
-            
-            if (currentFileType === 'dxf') reader.readAsText(currentFile);
-            else showToast('Please convert DWG to DXF first for geometry import.');
-        }
-        
-        function showToast(msg, ms = 3200) {
-            const t = document.createElement('div');
-            t.className = `fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-sm px-5 py-3 rounded-3xl flex items-center gap-x-3 z-[999]`;
-            t.innerHTML = `<i class="fa-solid fa-info-circle text-blue-400"></i><span>${msg}</span>`;
-            document.body.appendChild(t);
-            setTimeout(() => { t.style.transition='all .2s'; t.style.opacity='0'; setTimeout(()=>t.remove(),200); }, ms);
-        }
-        
-        function initializeEverything() {
-            initializeTailwind();
-            initThreeJS();
-            
-            document.addEventListener('keydown', e => {
-                if (e.key === '?' ) { e.preventDefault(); showToast('Upload DXF files for native 3D geometry rendering.'); }
-                if (e.key.toLowerCase() === 'r' && e.metaKey) { e.preventDefault(); resetScene(); }
+
+        function addTable() {
+            params.tables.push({
+                xInches: params.room.widthInches / 2,
+                yInches: params.room.depthInches / 2,
+                lengthInches: 72,
+                widthInches: 36,
+                heightInches: 30,
+                showAlignment: false
             });
-            
-            console.log('%c[AV Room Planner] DXF geometry parser active', 'color:#64748b');
+            buildRoom();
+            updateSelectedTableGUI();
         }
-        
-        window.onload = initializeEverything;
+
+        function removeSelectedTable() {
+            if (selectedTableIndex >= 0 && selectedTableIndex < params.tables.length) {
+                params.tables.splice(selectedTableIndex, 1);
+                selectedTableIndex = -1;
+                document.getElementById('table-panel').style.display = 'none';
+                buildRoom();
+            }
+        }
+
+        function duplicateSelectedTable() {
+            if (selectedTableIndex >= 0 && selectedTableIndex < params.tables.length) {
+                const orig = params.tables[selectedTableIndex];
+                params.tables.push({
+                    ...orig,
+                    xInches: orig.xInches + 24,
+                    yInches: orig.yInches + 24
+                });
+                buildRoom();
+            }
+        }
+
+        function updateSelectedTableGUI() {
+            const panel = document.getElementById('table-panel');
+            if (selectedTableIndex >= 0 && selectedTableIndex < params.tables.length) {
+                const table = params.tables[selectedTableIndex];
+                document.getElementById('table-x').value = table.xInches;
+                document.getElementById('table-y').value = table.yInches;
+                document.getElementById('table-length').value = table.lengthInches;
+                document.getElementById('table-width').value = table.widthInches;
+                document.getElementById('table-height').value = table.heightInches;
+                document.getElementById('table-align').checked = table.showAlignment;
+                panel.style.bottom = '10px';
+                panel.style.left = '10px';
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function onPointerDown(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersectsTables = raycaster.intersectObjects(tableMeshes);
+            const intersectsPerson = raycaster.intersectObject(personMesh);
+
+            if (intersectsPerson.length > 0) {
+                isDraggingPerson = true;
+                controls.enabled = false;
+            } else if (intersectsTables.length > 0) {
+                selectedTableIndex = intersectsTables[0].object.userData.index;
+                draggingTableMesh = intersectsTables[0].object;
+                isDraggingTable = true;
+                controls.enabled = false;
+                updateSelectedTableGUI();
+            } else {
+                const panelRect = tablePanel.getBoundingClientRect();
+                const closeRect = document.getElementById('close-panel').getBoundingClientRect();
+                if (event.clientX >= closeRect.left && event.clientX <= closeRect.right &&
+                    event.clientY >= closeRect.top && event.clientY <= closeRect.bottom) {
+                    selectedTableIndex = -1;
+                    tablePanel.style.display = 'none';
+                    buildRoom();
+                } else if (event.clientX >= panelRect.left && event.clientX <= panelRect.right &&
+                           event.clientY >= panelRect.top && event.clientY <= panelRect.bottom) {
+                    isDraggingPanel = true;
+                    dragStartX = event.clientX;
+                    dragStartY = event.clientY;
+                    panelStartX = parseInt(tablePanel.style.left) || 10;
+                    panelStartY = parseInt(tablePanel.style.bottom) || 10;
+                    tablePanel.style.cursor = 'move';
+                }
+            }
+        }
+
+        function onPointerMove(event) {
+            if (isDraggingPanel) {
+                const dx = event.clientX - dragStartX;
+                const dy = event.clientY - dragStartY;
+                tablePanel.style.left = (panelStartX + dx) + 'px';
+                tablePanel.style.bottom = (panelStartY - dy) + 'px';
+            }
+            if (isDraggingPerson) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+                const intersectPoint = new THREE.Vector3();
+                if (raycaster.ray.intersectPlane(plane, intersectPoint)) {
+                    personMesh.position.x = intersectPoint.x;
+                    personMesh.position.z = intersectPoint.z;
+                    const personHeight = params.person.heightInches / 12;
+                    const mouthY = personHeight - 0.52;
+                    laserLine.geometry.attributes.position.setXYZ(1, personMesh.position.x, mouthY, personMesh.position.z);
+                    laserLine.geometry.attributes.position.needsUpdate = true;
+                    updateAngles();
+                }
+            }
+            if (isDraggingTable) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+                const intersectPoint = new THREE.Vector3();
+                if (raycaster.ray.intersectPlane(plane, intersectPoint)) {
+                    draggingTableMesh.position.x = intersectPoint.x;
+                    draggingTableMesh.position.z = intersectPoint.z;
+                }
+            }
+        }
+
+        function onPointerUp() {
+            if (isDraggingPanel) {
+                isDraggingPanel = false;
+                tablePanel.style.cursor = 'default';
+            }
+            if (isDraggingPerson) {
+                isDraggingPerson = false;
+                controls.enabled = true;
+                const roomWidth = params.room.widthInches / 12;
+                const roomDepth = params.room.depthInches / 12;
+                params.person.xInches = (personMesh.position.x + roomWidth / 2) * 12;
+                params.person.yInches = (personMesh.position.z + roomDepth / 2) * 12;
+                gui.updateDisplay();
+                buildRoom();
+            }
+            if (isDraggingTable) {
+                isDraggingTable = false;
+                controls.enabled = true;
+                const table = params.tables[selectedTableIndex];
+                const tableLength = table.lengthInches / 12;
+                const tableWidth = table.widthInches / 12;
+                const roomWidth = params.room.widthInches / 12;
+                const roomDepth = params.room.depthInches / 12;
+                table.xInches = (draggingTableMesh.position.x - tableLength / 2 + roomWidth / 2) * 12;
+                table.yInches = (draggingTableMesh.position.z - tableWidth / 2 + roomDepth / 2) * 12;
+                draggingTableMesh = null;
+                buildRoom();
+            }
+        }
+
+        document.addEventListener('pointerdown', onPointerDown);
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
+
+        // Table panel inputs
+        ['table-x','table-y','table-length','table-width','table-height'].forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                if (selectedTableIndex >= 0) {
+                    const key = id.replace('table-','') + 'Inches';
+                    params.tables[selectedTableIndex][key] = parseFloat(e.target.value);
+                    buildRoom();
+                }
+            });
+        });
+        document.getElementById('table-align').addEventListener('change', (e) => {
+            if (selectedTableIndex >= 0) {
+                params.tables[selectedTableIndex].showAlignment = e.target.checked;
+                buildRoom();
+            }
+        });
+        document.getElementById('remove-table').addEventListener('click', removeSelectedTable);
+        document.getElementById('duplicate-table').addEventListener('click', duplicateSelectedTable);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.matches('input')) return;
+            if (e.key.toLowerCase() === 'r') {
+                params.mic.rotation = (params.mic.rotation + 90) % 360;
+                gui.updateDisplay();
+                buildRoom();
+            } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (selectedTableIndex >= 0) removeSelectedTable();
+            } else if (e.key === 'Escape') {
+                selectedTableIndex = -1;
+                tablePanel.style.display = 'none';
+                buildRoom();
+            } else if (e.key.toLowerCase() === 'g') {
+                params.showZone = !params.showZone;
+                gui.updateDisplay();
+                buildRoom();
+            }
+        });
+
+        const gui = new dat.GUI();
+        gui.domElement.style.width = '310px';
+
+        const roomFolder = gui.addFolder('Room');
+        const widthController = roomFolder.add(params.room, 'widthInches', 12, 1200, 0.125).name(`Width (in) ${inchesToFtIn(params.room.widthInches)}`);
+        widthController.onChange(() => {
+            widthController.name(`Width (in) ${inchesToFtIn(params.room.widthInches)}`);
+            buildRoom();
+        });
+        const depthController = roomFolder.add(params.room, 'depthInches', 12, 1200, 0.125).name(`Depth (in) ${inchesToFtIn(params.room.depthInches)}`);
+        depthController.onChange(() => {
+            depthController.name(`Depth (in) ${inchesToFtIn(params.room.depthInches)}`);
+            buildRoom();
+        });
+        const heightController = roomFolder.add(params.room, 'heightInches', 12, 360, 0.125).name(`Height (in) ${inchesToFtIn(params.room.heightInches)}`);
+        heightController.onChange(() => {
+            heightController.name(`Height (in) ${inchesToFtIn(params.room.heightInches)}`);
+            buildRoom();
+        });
+        roomFolder.add(params, 'roomName').name('Room Name/Number').onChange(() => {
+            roomNameDiv.innerHTML = params.roomName ? `Room: ${params.roomName}` : '';
+        });
+
+        const gridFolder = gui.addFolder('Grid');
+        gridFolder.add(params.grid, 'ceiling_offset_x_inches', 0, 24, 0.125).name('Ceiling Offset X (in)').onChange(buildRoom);
+        gridFolder.add(params.grid, 'ceiling_offset_y_inches', 0, 24, 0.125).name('Ceiling Offset Y (in)').onChange(buildRoom);
+        gridFolder.add(params.grid, 'floor_offset_x_inches', 0, 24, 0.125).name('Floor Offset X (in)').onChange(buildRoom);
+        gridFolder.add(params.grid, 'floor_offset_y_inches', 0, 24, 0.125).name('Floor Offset Y (in)').onChange(buildRoom);
+
+        const micFolder = gui.addFolder('Microphone');
+        micFolder.add(params.mic, 'type', ['basic', 'tcc2', 'mxa920']).name('Model').onChange(buildRoom);
+        const micColController = micFolder.add(params.mic, 'col', 1, 10, 1).onChange(buildRoom);
+        const micRowController = micFolder.add(params.mic, 'row', 1, 10, 1).onChange(buildRoom);
+        micFolder.add(params.mic, 'rotation', 0, 359, 1).name('Rotation (°)').onChange(buildRoom);
+        micFolder.add({rotate: () => {
+            params.mic.rotation = (params.mic.rotation + 90) % 360;
+            gui.updateDisplay();
+            buildRoom();
+        }}, 'rotate').name('Rotate +90°');
+
+        const personFolder = gui.addFolder('Person');
+        const personXController = personFolder.add(params.person, 'xInches', 0, params.room.widthInches, 0.125).name(`X (in) ${inchesToFtIn(params.person.xInches)}`);
+        personXController.onChange(() => {
+            personXController.name(`X (in) ${inchesToFtIn(params.person.xInches)}`);
+            buildRoom();
+        });
+        const personYController = personFolder.add(params.person, 'yInches', 0, params.room.depthInches, 0.125).name(`Y (in) ${inchesToFtIn(params.person.yInches)}`);
+        personYController.onChange(() => {
+            personYController.name(`Y (in) ${inchesToFtIn(params.person.yInches)}`);
+            buildRoom();
+        });
+        const personHeightController = personFolder.add(params.person, 'heightInches', 12, params.room.heightInches, 0.125).name(`Height (in) ${inchesToFtIn(params.person.heightInches)}`);
+        personHeightController.onChange(() => {
+            personHeightController.name(`Height (in) ${inchesToFtIn(params.person.heightInches)}`);
+            buildRoom();
+        });
+        personFolder.add({moveUnderMic: () => {
+            const roomW = params.room.widthInches / 12;
+            const roomD = params.room.depthInches / 12;
+            const ox = params.grid.ceiling_offset_x_inches / 12;
+            const oy = params.grid.ceiling_offset_y_inches / 12;
+            const micXft = ox + (params.mic.col - 1) * 2 - roomW / 2 + 1;
+            const micZft = oy + (params.mic.row - 1) * 2 - roomD / 2 + 1;
+            params.person.xInches = (micXft + roomW / 2) * 12;
+            params.person.yInches = (micZft + roomD / 2) * 12;
+            gui.updateDisplay();
+            buildRoom();
+        }}, 'moveUnderMic').name('Move Person under Mic');
+
+        const tableFolder = gui.addFolder('Tables');
+        tableFolder.add({add: addTable}, 'add').name('Add Table (centered)');
+
+        const camFolder = gui.addFolder('Camera');
+        camFolder.add(params.camera, 'type', ['basic', 'qsc-ptz']).name('Model').onChange(buildRoom);
+        const camColController = camFolder.add(params.camera, 'col', 1, 10, 1).onChange(buildRoom);
+        const camRowController = camFolder.add(params.camera, 'row', 1, 10, 1).onChange(buildRoom);
+
+        const zoneFolder = gui.addFolder('Zone');
+        zoneFolder.add(params.zone, 'horizMin', 0, 360, 1).onChange(buildRoom);
+        zoneFolder.add(params.zone, 'horizMax', 0, 360, 1).onChange(buildRoom);
+        zoneFolder.add(params.zone, 'vertMin', 0, 90, 1).onChange(buildRoom);
+        zoneFolder.add(params.zone, 'vertMax', 0, 90, 1).onChange(buildRoom);
+
+        const viewFolder = gui.addFolder('View');
+        viewFolder.add(params, 'ceilingTransparency', 0, 1, 0.1).name('Ceiling Visibility').onChange(buildRoom);
+        viewFolder.add(params, 'wallTransparency', 0, 1, 0.1).name('Wall Visibility').onChange(buildRoom);
+        viewFolder.add(params, 'showMic').name('Show Mic').onChange(buildRoom);
+        viewFolder.add(params, 'showPerson').name('Show Person').onChange(buildRoom);
+        viewFolder.add(params, 'showTable').name('Show Table').onChange(buildRoom);
+        viewFolder.add(params, 'showCamera').name('Show Camera').onChange(buildRoom);
+        viewFolder.add(params, 'showOrigin').name('Show Origin').onChange(buildRoom);
+        viewFolder.add(params, 'showAlignment').name('Show Alignment (Person)').onChange(buildRoom);
+        viewFolder.add(params, 'showZone').name('Show Zone').onChange(buildRoom);
+        viewFolder.add(params, 'showRedWall').name('Show Red Wall').onChange(buildRoom);
+        viewFolder.add(params, 'showBlueWall').name('Show Blue Wall').onChange(buildRoom);
+        viewFolder.add(params, 'showYellowWall').name('Show Yellow Wall').onChange(buildRoom);
+        viewFolder.add(params, 'showGreenWall').name('Show Green Wall').onChange(buildRoom);
+        viewFolder.add({topDown: () => {
+            const roomH = params.room.heightInches / 12;
+            camera.position.set(0, roomH + 10, 0);
+            camera.lookAt(0, 0, 0);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }}, 'topDown').name('Top Down View');
+        viewFolder.add({screenshot: () => {
+            const link = document.createElement('a');
+            link.download = `${params.roomName || 'room'}_mic_angles.png`;
+            link.href = renderer.domElement.toDataURL('image/png');
+            link.click();
+        }}, 'screenshot').name('Export Screenshot (PNG)');
+
+        const importExportFolder = gui.addFolder('Import/Export');
+        importExportFolder.add({exportConfig: () => {
+            const roomNumber = prompt("Enter the room number/name:");
+            if (roomNumber) {
+                params.roomName = roomNumber;
+                const config = JSON.stringify(params, null, 2);
+                const blob = new Blob([config], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${roomNumber}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                roomNameDiv.innerHTML = `Room: ${roomNumber}`;
+            }
+        }}, 'exportConfig').name('Export Config (.json)');
+        importExportFolder.add({importConfig: () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const config = JSON.parse(ev.target.result);
+                        if (config.room) Object.assign(params.room, config.room);
+                        if (config.mic) Object.assign(params.mic, config.mic);
+                        if (config.person) Object.assign(params.person, config.person);
+                        if (config.tables) params.tables = config.tables;
+                        if (config.camera) Object.assign(params.camera, config.camera);
+                        if (config.zone) Object.assign(params.zone, config.zone);
+                        if (config.grid) Object.assign(params.grid, config.grid);
+                        ['showOrigin','showMic','showPerson','showTable','showCamera','showAlignment','showZone',
+                         'ceilingTransparency','wallTransparency','showRedWall','showBlueWall','showYellowWall','showGreenWall'
+                        ].forEach(k => { if (typeof config[k] !== 'undefined') params[k] = config[k]; });
+                        if (config.roomName) params.roomName = config.roomName;
+
+                        updateMicRange();
+                        buildRoom();
+                        gui.updateDisplay();
+                        roomNameDiv.innerHTML = params.roomName ? `Room: ${params.roomName}` : '';
+                    } catch (err) {
+                        alert('Failed to import config: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }}, 'importConfig').name('Import Config (.json)');
+        importExportFolder.add({saveSession: () => {
+            try {
+                localStorage.setItem('micCalcLastConfig', JSON.stringify(params));
+                alert('Session saved to browser.');
+            } catch (e) {
+                alert('Could not save session.');
+            }
+        }}, 'saveSession').name('Save Current Session');
+        importExportFolder.add({loadSession: () => {
+            try {
+                const saved = localStorage.getItem('micCalcLastConfig');
+                if (!saved) { alert('No saved session found.'); return; }
+                const config = JSON.parse(saved);
+                if (config.room) Object.assign(params.room, config.room);
+                if (config.mic) Object.assign(params.mic, config.mic);
+                if (config.person) Object.assign(params.person, config.person);
+                if (config.tables) params.tables = config.tables;
+                if (config.camera) Object.assign(params.camera, config.camera);
+                if (config.zone) Object.assign(params.zone, config.zone);
+                if (config.grid) Object.assign(params.grid, config.grid);
+                ['showOrigin','showMic','showPerson','showTable','showCamera','showAlignment','showZone',
+                 'ceilingTransparency','wallTransparency','showRedWall','showBlueWall','showYellowWall','showGreenWall'
+                ].forEach(k => { if (typeof config[k] !== 'undefined') params[k] = config[k]; });
+                if (config.roomName) params.roomName = config.roomName;
+
+                updateMicRange();
+                buildRoom();
+                gui.updateDisplay();
+                roomNameDiv.innerHTML = params.roomName ? `Room: ${params.roomName}` : '';
+            } catch (e) {
+                alert('Failed to load saved session.');
+            }
+        }}, 'loadSession').name('Load Last Session');
+
+        // Auto-close other folders
+        for (let key in gui.__folders) {
+            const folder = gui.__folders[key];
+            const title = folder.domElement.querySelector('.title');
+            if (title) title.addEventListener('click', () => {
+                for (let k in gui.__folders) {
+                    if (k !== key) gui.__folders[k].close();
+                }
+            });
+        }
+
+        buildRoom();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
     </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mic Angle Calculator - 3D Room Visualizer v2.4</title>
+    <title>Microphone Angle Calculator</title>
     <style>
         body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
         canvas { display: block; }
@@ -418,7 +418,7 @@
 
             // Lens glass highlight
             const glass = new THREE.Mesh(
-                noup THREE.CylinderGeometry(0.12, 0.12, 0.05, 16),
+                new THREE.CylinderGeometry(0.12, 0.12, 0.05, 16),
                 new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.6 })
             );
             glass.rotation.x = Math.PI / 2;
